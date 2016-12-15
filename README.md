@@ -35,7 +35,7 @@ git clone https://github.com/charliewolf/pynder.git \
 
 Install dependencies:
 ```
-pip install -r $ROOT_FOLDER/requirements.txt
+pip3 install -r requirements.txt
 ```
 
 

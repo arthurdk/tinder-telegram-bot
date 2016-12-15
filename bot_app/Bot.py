@@ -98,6 +98,7 @@ def set_auto(bot, update):
             message = "Automatic mode disabled."
         bot.sendMessage(chat_id, text=message)
 
+
 @run_async
 def send_matches(bot, update):
     global conversations
@@ -126,7 +127,10 @@ def start_vote_session(bot, update, job_queue):
 
 def get_question_match(conversation):
     name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
-    return "So what do you think of %s?" % name
+    question = "So what do you think of %s?" % name
+    if len(conversation.current_user.bio) > 0:
+        question += "\n " + conversation.current_user.bio
+    return question
 
 
 def start_vote(bot, job):
@@ -165,9 +169,8 @@ def get_vote_keyboard(chat_id):
         like_label = "❤️ (%d)" % likes
         dislike_label = "❌ (%d)" % dislikes
         keyboard = [[InlineKeyboardButton(like_label, callback_data=Vote.LIKE),
-                     InlineKeyboardButton(dislike_label, callback_data=Vote.DISLIKE)],
-                    [InlineKeyboardButton("More pictures", callback_data=Vote.MORE),
-                     InlineKeyboardButton("Bio", callback_data=Vote.BIO)]]
+                     InlineKeyboardButton("More pictures", callback_data=Vote.MORE),
+                     InlineKeyboardButton(dislike_label, callback_data=Vote.DISLIKE)]]
 
         return InlineKeyboardMarkup(keyboard)
     else:
@@ -181,8 +184,6 @@ def do_vote(bot, update, job_queue):
 
     if query.data == Vote.MORE:
         send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot)
-    elif query.data == Vote.BIO:
-        send_bio(private_chat_id=sender, group_chat_id=chat_id, bot=bot)
     else:
         conversations[chat_id].current_votes[sender] = query.data
         # Schedule end of voting session
@@ -218,7 +219,7 @@ def send_more_photos(private_chat_id, group_chat_id, bot):
             message = "There is not vote going on right now."
             bot.sendMessage(private_chat_id, text=message)
 
-
+"""
 def send_bio(private_chat_id, group_chat_id, bot):
     global conversations
     if group_chat_id in conversations:
@@ -229,7 +230,7 @@ def send_bio(private_chat_id, group_chat_id, bot):
         else:
             message = "There is not vote going on right now."
             bot.sendMessage(private_chat_id, text=message)
-
+"""
 
 def set_account(bot, update):
     global change_account_queries

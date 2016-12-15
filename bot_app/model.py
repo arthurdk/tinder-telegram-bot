@@ -6,7 +6,7 @@ class Vote:
     LIKE = "LIKE"
     DISLIKE = "DISLIKE"
     MORE = "MORE"
-    BIO = "BIO"
+#    BIO = "BIO"
 
 
 class Conversation:

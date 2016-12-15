@@ -87,6 +87,20 @@ def set_timeout(bot, update, args):
         bot.sendMessage(chat_id, text=message)
 
 
+@run_async
+def send_matches(bot, update):
+    global conversations
+    chat_id = update.message.chat_id
+    sender_id = update.message.from_user.id
+    if chat_id in conversations:
+        try:
+            for match in conversations[chat_id].session.matches():
+                bot.sendPhoto(chat_id=sender_id, photo=match.user.get_photos(width='84')[0], caption=match.user.name)
+        except AttributeError as e:
+            message = "An error happened."
+            bot.sendMessage(sender_id, text=message)
+
+
 def start_vote_session(bot, update, job_queue):
     chat_id = update.message.chat_id
     job = Job(start_vote, 0, repeat=False, context=chat_id)
@@ -171,6 +185,7 @@ def do_vote(bot, update, job_queue):
                         message_id=query.message.message_id,
                         text=get_question_match(conversation=conversations[chat_id]))
 
+
 @run_async
 def send_more_photos(private_chat_id, group_chat_id, bot):
     """
@@ -210,6 +225,7 @@ def set_account(bot, update):
     change_account_queries[sender] = update.message.chat_id
     msg = "Send me your facebook authentication token"
     bot.sendMessage(sender, text=msg)
+
 
 @run_async
 def alarm_vote(bot, chat_id):
@@ -264,6 +280,7 @@ def main():
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('location', set_location, pass_args=True))
     dispatcher.add_handler(CommandHandler('set_account', set_account))
+    dispatcher.add_handler(CommandHandler('matches', send_matches))
     dispatcher.add_handler(CallbackQueryHandler(do_vote, pass_job_queue=True))
     dispatcher.add_handler(MessageHandler(Filters.text, message_handler))
     dispatcher.add_handler(CommandHandler('new_vote', start_vote_session, pass_job_queue=True))

@@ -87,6 +87,17 @@ def set_timeout(bot, update, args):
         bot.sendMessage(chat_id, text=message)
 
 
+def set_auto(bot, update):
+    global conversations
+    chat_id = update.message.chat_id
+    if chat_id in conversations:
+        conversations[chat_id].auto = not conversations[chat_id].auto
+        if conversations[chat_id].auto:
+            message = "Automatic mode enabled."
+        else:
+            message = "Automatic mode disabled."
+        bot.sendMessage(chat_id, text=message)
+
 @run_async
 def send_matches(bot, update):
     global conversations
@@ -96,7 +107,7 @@ def send_matches(bot, update):
         try:
             matches = conversations[chat_id].session.matches()
             for match in matches:
-                photo = match.user.get_photos(width='84')[0]
+                photo = match.user.get_photos(width='172')[0]
                 try:
                     bot.sendPhoto(chat_id=sender_id, photo=photo, caption=match.user.name)
                 except error.BadRequest:
@@ -177,12 +188,7 @@ def do_vote(bot, update, job_queue):
         # Schedule end of voting session
         if not conversations[chat_id].is_alarm_set:
             conversations[chat_id].is_alarm_set = True
-            alarm_vote(bot, chat_id)
-            """
-            t_alarm = threading.Thread(target=alarm_vote, args=(bot, chat_id))
-            t_alarm.daemon = True
-            t_alarm.run()
-            """
+            alarm_vote(bot, chat_id, job_queue)
 
     # Send back updated inline keyboard
     reply_markup = get_vote_keyboard(chat_id=chat_id)
@@ -234,7 +240,7 @@ def set_account(bot, update):
 
 
 @run_async
-def alarm_vote(bot, chat_id):
+def alarm_vote(bot, chat_id, job_queue):
     conversation = conversations[chat_id]
     time.sleep(conversation.timeout)
     msg = conversation.result_msg
@@ -247,6 +253,10 @@ def alarm_vote(bot, chat_id):
         conversation.current_user.like()
     else:
         conversation.current_user.dislike()
+
+    if conversation.auto:
+        job = Job(start_vote, 0, repeat=False, context=chat_id)
+        job_queue.put(job)
 
 
 def message_handler(bot, update):
@@ -284,6 +294,7 @@ def main():
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(CommandHandler('auto', set_auto))
     dispatcher.add_handler(CommandHandler('location', set_location, pass_args=True))
     dispatcher.add_handler(CommandHandler('set_account', set_account))
     dispatcher.add_handler(CommandHandler('matches', send_matches))

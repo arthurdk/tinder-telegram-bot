@@ -21,6 +21,7 @@ class Conversation:
         # Message that will be edited after the voting session is finished
         self.result_msg = None
         self.timeout = 60
+        self.auto = False
 
     def refresh_users(self):
         self.users = self.session.nearby_users()

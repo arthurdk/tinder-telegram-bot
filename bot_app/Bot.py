@@ -241,7 +241,7 @@ def set_account(bot, update):
     global change_account_queries
     sender = update.message.from_user.id
     change_account_queries[sender] = update.message.chat_id
-    msg = "Send me your facebook authentication token"
+    msg = "I received your facebook authentication token"
     bot.sendMessage(sender, text=msg)
 
 

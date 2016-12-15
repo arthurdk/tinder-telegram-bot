@@ -24,3 +24,36 @@ Finally, write your bot api key in the dedicated environment variable and launch
 ```
 docker run -d -e BOT_KEY="YOUR_BOT_API_KEY" --restart=always --name tinder-bot <your-repo-name>/tinder-telegram-bot:dev
 ```
+
+### Python
+
+Install Pynder (Tinder client)
+```
+git clone https://github.com/charliewolf/pynder.git \
+&& cd pynder && python setup.py install
+```
+
+Install dependencies:
+```
+pip install -r $ROOT_FOLDER/requirements.txt
+```
+
+
+Create file containing the bot api key.
+```
+cat > bot_app/settings.py << EOL
+KEY = "YOUR_KEY_HERE"
+DB_NAME = 'tinderbot.sqlite3'
+EOL
+```
+
+Launch the bot:
+```
+python3.5 bot_app/Bot.py
+```
+
+#### Troubleshooting:
+In case the module is not recognized:
+```
+export PYTHONPATH=.
+```

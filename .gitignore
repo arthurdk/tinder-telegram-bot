@@ -90,4 +90,7 @@ ENV/
 .idea/
 key
 settings.py
-*.sqlite3
+*.sqlite3i
+
+# Vim tmp files
+*.swp

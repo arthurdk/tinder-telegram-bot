@@ -24,7 +24,7 @@ conversations = {}
 
 def start(bot, update):
     chat_id = update.message.chat_id
-    message = 'Hey ! \nFirst thing first, you will need to set your Facebook authentication ' \
+    message = 'Hey ! \nFirst things first, you will need to set your Facebook authentication ' \
               'token using the /set_account command'
     bot.sendMessage(chat_id, text=message)
 

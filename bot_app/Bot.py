@@ -267,7 +267,7 @@ def main():
     dispatcher.add_handler(CallbackQueryHandler(do_vote, pass_job_queue=True))
     dispatcher.add_handler(MessageHandler(Filters.text, message_handler))
     dispatcher.add_handler(CommandHandler('new_vote', start_vote_session, pass_job_queue=True))
-    dispatcher.add_handler(CommandHandler('timeout', set_timeout))
+    dispatcher.add_handler(CommandHandler('timeout', set_timeout, pass_args=True))
     updater.start_polling()
     updater.idle()
 

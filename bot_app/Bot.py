@@ -66,8 +66,9 @@ def set_location(bot, update, args):
                 longitude = args[1]
                 conversations[chat_id].session.update_location(latitude, longitude)
                 message = "Location updated."
+                conversations[chat_id].refresh_users()
                 send_location(latitude=latitude, longitude=longitude, bot=bot, chat_id=chat_id)
-            except AttributeError:
+            except AttributeError as e:
                 message = "Facebook token needs to be set up first."
         bot.sendMessage(chat_id, text=message)
 
@@ -147,7 +148,7 @@ def start_vote(bot, job):
             conversation.current_votes = {}
             photos = conversation.current_user.get_photos(width='320')
             name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
-            if len(conversations[chat_id].current_user.bio) > 0:
+            if len(conversation.current_user.bio) > 0:
                 name += "\n" + conversations[chat_id].current_user.bio
             bot.sendPhoto(job.context, photo=photos[0], caption=name)
 

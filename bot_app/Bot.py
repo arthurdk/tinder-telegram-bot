@@ -173,6 +173,13 @@ def do_vote(bot, update, job_queue):
 
 @run_async
 def send_more_photos(private_chat_id, group_chat_id, bot):
+    """
+    Function used for sending all pictures to private chat directly
+    :param private_chat_id:
+    :param group_chat_id:
+    :param bot:
+    :return:
+    """
     global conversations
     if group_chat_id in conversations:
         if conversations[group_chat_id].is_voting:
@@ -214,6 +221,10 @@ def alarm_vote(bot, chat_id):
     bot.editMessageText(chat_id=msg.chat_id, message_id=msg.message_id, text=message)
     conversation.set_is_voting(False)
     conversation.is_alarm_set = False
+    if likes > dislikes:
+        conversation.current_user.like()
+    else:
+        conversation.current_user.dislike()
 
 
 def message_handler(bot, update):

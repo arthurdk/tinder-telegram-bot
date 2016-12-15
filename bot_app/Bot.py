@@ -128,8 +128,6 @@ def start_vote_session(bot, update, job_queue):
 def get_question_match(conversation):
     name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
     question = "So what do you think of %s?" % name
-    if len(conversation.current_user.bio) > 0:
-        question += "\n " + conversation.current_user.bio
     return question
 
 
@@ -149,6 +147,8 @@ def start_vote(bot, job):
             conversation.current_votes = {}
             photos = conversation.current_user.get_photos(width='320')
             name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
+            if len(conversations[chat_id].current_user.bio) > 0:
+                name += "\n" + conversations[chat_id].current_user.bio
             bot.sendPhoto(job.context, photo=photos[0], caption=name)
 
             # Prepare voting inline keyboard
@@ -231,6 +231,7 @@ def send_bio(private_chat_id, group_chat_id, bot):
             message = "There is not vote going on right now."
             bot.sendMessage(private_chat_id, text=message)
 """
+
 
 def set_account(bot, update):
     global change_account_queries

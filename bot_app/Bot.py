@@ -1,4 +1,4 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, TelegramError
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, TelegramError, error
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler, Filters, MessageHandler
 from telegram.ext.dispatcher import run_async
 import logging
@@ -94,8 +94,14 @@ def send_matches(bot, update):
     sender_id = update.message.from_user.id
     if chat_id in conversations:
         try:
-            for match in conversations[chat_id].session.matches():
-                bot.sendPhoto(chat_id=sender_id, photo=match.user.get_photos(width='84')[0], caption=match.user.name)
+            matches = conversations[chat_id].session.matches()
+            for match in matches:
+                photo = match.user.get_photos(width='84')[0]
+                try:
+                    bot.sendPhoto(chat_id=sender_id, photo=photo, caption=match.user.name)
+                except error.BadRequest:
+                    bot.sendMessage(sender_id, text="One match could not be loaded: %s" % photo)
+                time.sleep(0.1)
         except AttributeError as e:
             message = "An error happened."
             bot.sendMessage(sender_id, text=message)

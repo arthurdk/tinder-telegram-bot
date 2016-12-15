@@ -6,6 +6,8 @@ db = pw.SqliteDatabase(settings.DB_NAME)
 
 class Conversation(pw.Model):
     id = pw.CharField()
+    fb_auth = pw.CharField()
 
     class Meta:
         database = db
+

@@ -1,9 +1,9 @@
 FROM jfloff/alpine-python:latest-slim
-
-ADD ./ /tinder-bot
-RUN apk add --no-cache git \
+ENV ROOT_FOLDER /tinder-bot
+ADD ./ $ROOT_FOLDER
+RUN apk add --no-cache git bash \
 && git clone https://github.com/charliewolf/pynder.git \
-&& cd pynder && python setup.py install
-RUN pip install -r /tinder-bot/requirements.txt
-ENV PYTHONPATH /tinder-bot/
-ENTRYPOINT  ["python", "/tinder-bot/bot_app/Bot.py"]
+&& cd pynder && python setup.py install \
+&& pip install -r $ROOT_FOLDER/requirements.txt
+ENV PYTHONPATH $ROOT_FOLDER/
+ENTRYPOINT /bin/sh $ROOT_FOLDER/docker/launch.sh

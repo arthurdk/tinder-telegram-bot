@@ -29,6 +29,30 @@ If you join a group where a bot is active, remember to start a conversation with
 
 Note: Only one person needs to set the Tinder account in order for the bot to work. The others can just enjoy.
 
+## Retrieve the authentication token
+This part is a bit tricky, so you will need to be tech friendly.
+### Automated solutions
+Note:
+
+I did not test those personally so use it at your own risks.
+#### Chrome plugin
+* https://chrome.google.com/webstore/detail/tinder-auth-token-grabber/pgjknpecbogfcnlfjehdidbeablebepc?hl=en-GB
+#### Webapp
+* https://github.com/tinderjs/tinderauth
+### Manual solution
+#### Android
+Note: This was tested by not having the Facebook application on the phone but it could also work.
+* Download a package sniffer on your phone like [Package Capture](https://play.google.com/store/apps/details?id=app.greyshirts.sslcapture&hl=en)
+* Logout of your Tinder account
+* Close other apps (you'll have less package in the app)
+* Begin sniffing packages
+* Login in Tinder
+* Go to the sniffer again, stop the sniffing
+* Look for the Tinder /auth request and more precisely for the facebook_token parameter, that's it you are done.
+
+
+## Screenshots
+
 ## Installation
 
 ### Docker (from DockerHub)

@@ -16,8 +16,8 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
                         "_Searching for matches:_\n" \
                         " * Use /location to set your location.\n" \
-                        " * Use /new_vote to start voting for a new stranger. Arthur how does the voting end when not using auto?\n" \
-                        " * Use /auto to toggle between automatic and manual mode. In automatic mode, the group will vote n seconds for every stranger. You can set n with /timeout.\n" \
+                        " * Use /new_vote to start voting for a new stranger. Voting time can be set with /timeout.\n" \
+                        " * Use /auto to toggle between automatic and manual mode. In automatic mode, a new vote will be started after the current one is finished.\n" \
                         " * Use /matches to list your matches in your private chat.\n" \
                         "\n" \
                         "_Chatting with matches:_\n" \

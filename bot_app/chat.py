@@ -4,6 +4,7 @@ from bot_app.messages import *
 from bot_app.admin import *
 import bot_app.data as data
 
+
 @run_async
 def send_message(bot, update, args):
     global data
@@ -12,7 +13,7 @@ def send_message(bot, update, args):
     chat_id = update.message.chat_id
     sender = update.message.from_user.id
 
-    if not chat_id in data.conversations:
+    if chat_id not in data.conversations:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
         return
 
@@ -30,7 +31,6 @@ def send_message(bot, update, args):
         send_help(bot, chat_id, "send_message", "First argument must be an integer")
         return
 
-
     destination = get_match(bot, update, match_id)
     if destination is None:
         return
@@ -45,8 +45,10 @@ def send_message(bot, update, args):
 
     send_custom_message(bot, chat_id, poll_last_messages_as_string(destination, 5))
 
+
 def poll_last_messages(match, n):
     return match.messages[-n:]
+
 
 def get_match(bot, update, id):
     global data
@@ -58,6 +60,7 @@ def get_match(bot, update, id):
         return None
 
     return matches[id]
+
 
 def poll_last_messages_as_string(match, n):
     last_messages = "Messages with " + match.user.name + ":\n"
@@ -72,11 +75,13 @@ def poll_last_messages_as_string(match, n):
 
     return last_messages
 
+
+@run_async
 def poll_messages(bot, update, args):
     global data
     chat_id = update.message.chat_id
 
-    if not chat_id in data.conversations:
+    if chat_id not in data.conversations:
         send_error(bot, chat_id, "account_not_setup")
         return
 

@@ -70,7 +70,7 @@ def set_timeout(bot, update, args):
         else:
             try:
                 data.conversations[chat_id].timeout = int(args[0])
-                message = "Timeout updated to %d seconds." % conversations[chat_id].timeout
+                message = "Timeout updated to %d seconds." % data.conversations[chat_id].timeout
             except AttributeError:
                 message = "An error happened."
         bot.sendMessage(chat_id, text=message)
@@ -174,7 +174,7 @@ def start_vote(bot, job):
 def get_vote_keyboard(chat_id):
     global data
     if chat_id in data.conversations:
-        likes, dislikes = conversations[chat_id].get_stats()
+        likes, dislikes = data.conversations[chat_id].get_stats()
         like_label = "❤️ (%d)" % likes
         dislike_label = "❌ (%d)" % dislikes
         keyboard = [[InlineKeyboardButton(like_label, callback_data=Vote.LIKE),
@@ -206,7 +206,7 @@ def do_vote(bot, update, job_queue):
     bot.editMessageText(reply_markup=reply_markup,
                         chat_id=query.message.chat_id,
                         message_id=query.message.message_id,
-                        text=get_question_match(conversation=conversations[chat_id]))
+                        text=get_question_match(conversation=data.conversations[chat_id]))
 
 
 @run_async
@@ -255,8 +255,6 @@ def set_account(bot, update):
                         text="Please send me your authentication token in our private conversation @TinderGroupBot",
                         reply_to_message_id=update.message.message_id)
         msg += " for the group %s" % update.message.chat.title
-    else:
-        msg += " in our private conversation."
     bot.sendMessage(sender, text=msg)
 
 

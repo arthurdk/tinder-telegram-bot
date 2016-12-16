@@ -1,4 +1,5 @@
 import bot_app.settings as settings
+from telegram import ParseMode
 
 # Help messages for all the bot commands. Use the internal function names as key!
 help_messages = {}
@@ -43,13 +44,14 @@ error_messages["command_not_allowed"] = "This command must not be executed by th
 
 ### Functions for sending messages to the user ###
 
+
 def debug(bot, chat_id, message):
     if settings.DEBUG_MODE:
         bot.sendMessage(chat_id, text=message)
 
 
 def send_help(bot, chat_id, command, error=""):
-    if not command in help_messages:
+    if command not in help_messages:
         raise Exception('Unknown command: ' + command)
 
     message = ""
@@ -59,22 +61,26 @@ def send_help(bot, chat_id, command, error=""):
     message += help_messages[command]
     bot.sendMessage(chat_id, text=message)
 
+
 def send_message(bot, chat_id, name):
-    if not name in messages:
+    if name not in messages:
         raise Exception('Unknown message: ' + name)
 
     bot.sendMessage(chat_id, text=messages[name])
 
+
 def send_error(bot, chat_id, name):
-    if not name in error_messages:
+    if name not in error_messages:
         raise Exception('Unknown error messages: ' + name)
 
     bot.sendMessage(chat_id, text=error_messages[name])
+
 
 def send_custom_message(bot, chat_id, message):
     bot.sendMessage(chat_id, text=message)
 
 ### Handling bot commands ###
+
 
 def send_help_message(bot, update):
     send_help(bot, update.message.chat_id, "help")

@@ -156,7 +156,7 @@ def start_vote(bot, job):
                 name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
                 # Append bio to caption if it's not empty
                 if len(conversation.current_user.bio) > 0:
-                    name += "\n" + conversations[chat_id].current_user.bio
+                    name += "\n" + data.conversations[chat_id].current_user.bio
                 msg = bot.sendPhoto(job.context, photo=photos[0], caption=name)
                 conversation.vote_msg = msg
                 # Prepare voting inline keyboard
@@ -300,7 +300,7 @@ def message_handler(bot, update):
             data.conversations[change_account_queries[sender]] = conversation
             del change_account_queries[sender]
 
-            data.owner = sender
+            conversation.owner = sender
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)

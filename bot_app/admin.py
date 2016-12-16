@@ -39,7 +39,7 @@ def set_setting(bot, update, args):
 
     chat_id = update.message.chat_id
 
-    if update.message.from_user.id != data.owner and data.owner is not None:
+    if update.message.from_user.id != data.conversations[chat_id].owner and data.conversations[chat_id].owner is not None:
         send_error(bot, chat_id, "command_not_allowed")
         return
 

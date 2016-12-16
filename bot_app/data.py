@@ -1,2 +1,1 @@
 conversations = {}
-owner = None

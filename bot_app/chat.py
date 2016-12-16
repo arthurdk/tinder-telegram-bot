@@ -16,7 +16,7 @@ def send_message(bot, update, args):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
         return
 
-    if ensure_setting_is_unset(bot, chat_id, "everybody_can_send_messages", sender == data.owner):
+    if ensure_setting_is_unset(bot, chat_id, "everybody_can_send_messages", sender == data.conversations[chat_id].owner):
         send_error(bot, chat_id, "command_not_allowed")
         return
 
@@ -80,7 +80,7 @@ def poll_messages(bot, update, args):
         send_error(bot, chat_id, "account_not_setup")
         return
 
-    if not ensure_setting_is_set(bot, chat_id, "enable_message_polling"):
+    if ensure_setting_is_unset(bot, chat_id, "enable_message_polling"):
         return
 
     if len(args) < 2:

@@ -307,6 +307,7 @@ def message_handler(bot, update):
     elif update.message.chat.type != "group":
         update.message.reply_text("I'm sorry Dave I'm afraid I can't do that.")
 
+
 def main():
     """
     db.connect()

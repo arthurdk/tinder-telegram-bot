@@ -1,6 +1,7 @@
 from bot_app.messages import *
 import bot_app.data as data
 
+
 class Settings:
     settings = {}
     settings["chat_mode"] = "off" # Modes are off, owner and all
@@ -19,7 +20,7 @@ class Settings:
         return True
 
     def get_setting(self, setting):
-        if not setting in self.settings.keys():
+        if setting not in self.settings.keys():
             raise Exception("Unknown setting: " + str(setting))
 
         return self.settings[setting]
@@ -40,6 +41,7 @@ def list_settings(bot, update):
         message += s + ": " + str(conversation.settings.settings[s]) + " " + str(conversation.settings.values[s]) + "\n"
 
     send_custom_message(bot, chat_id, message)
+
 
 def set_setting(bot, update, args):
     global data

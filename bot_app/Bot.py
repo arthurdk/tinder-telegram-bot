@@ -315,6 +315,8 @@ def main():
 
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(CommandHandler('help', send_help_message))
+
     dispatcher.add_handler(CommandHandler('auto', set_auto))
     dispatcher.add_handler(CommandHandler('location', set_location, pass_args=True))
     dispatcher.add_handler(CommandHandler('set_account', set_account))

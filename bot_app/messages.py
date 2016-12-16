@@ -19,6 +19,7 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         " * Use /new_vote to start voting for a new stranger. Voting time can be set with /timeout.\n" \
                         " * Use /auto to toggle between automatic and manual mode. In automatic mode, a new vote will be started after the current one is finished.\n" \
                         " * Use /matches to list your matches in your private chat.\n" \
+                        " * A draw is always a no.\n" \
                         "\n" \
                         "_Chatting with matches:_\n" \
                         " * Use /matches to list your matches in your private chat. Every match has an id. It can change if old matches unmatch.\n" \

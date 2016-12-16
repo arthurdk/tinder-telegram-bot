@@ -30,26 +30,6 @@ def start(bot, update):
               'token using the /set_account command if you want to link your Tinder account.'
     bot.sendMessage(chat_id, text=message)
 
-'''
-def set_fb_auth(bot, update, args):
-    chat_id = update.message.chat_id
-    if len(args) != 1:
-        message = "You need to send your Facebook authentication token along with the command"
-        bot.sendMessage(chat_id, text=message)
-    else:
-        try:
-            # arse_mode=ParseMode.MARKDOWN
-            create_pynder_session(args[0])
-            message = "Switching to %s account. \nConnect a group" % t_session.profile.name
-            keyboard = InlineKeyboardMarkup([
-                [InlineKeyboardButton("Choose a group", url="https://telegram.me/tindergroupbot?startgroup=test")]])
-            bot.sendMessage(chat_id=chat_id, text=message,
-                            reply_markup=keyboard)
-        except pynder.errors.RequestError:
-            message = "Authentication failed! Please try again."
-            bot.sendMessage(chat_id, text=message)
-'''
-
 
 def create_pynder_session(fb_token):
     return pynder.Session(facebook_token=fb_token)
@@ -272,6 +252,13 @@ def set_account(bot, update):
     sender = update.message.from_user.id
     change_account_queries[sender] = update.message.chat_id
     msg = "Send me your facebook authentication token"
+    if update.message.chat.type == "group":
+        bot.sendMessage(change_account_queries[sender],
+                        text="Please send me your authentication token on our private conversation @TinderGroupBot",
+                        reply_to_message_id=update.message.message_id)
+        msg += " for the group %s" % update.message.chat.title
+    else:
+        msg += " for our private conversation."
     bot.sendMessage(sender, text=msg)
 
 
@@ -293,6 +280,7 @@ def alarm_vote(bot, chat_id, job_queue):
     if conversation.auto:
         job = Job(start_vote, 0, repeat=False, context=chat_id)
         job_queue.put(job)
+
 
 def message_handler(bot, update):
     global conversations

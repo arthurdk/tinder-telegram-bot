@@ -19,8 +19,8 @@ from bot_app.data import *
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-global change_account_queries
 change_account_queries = {}
+global conversations
 
 
 def start(bot, update):
@@ -327,6 +327,7 @@ def main():
 
     # Chat functionality
     dispatcher.add_handler(CommandHandler('msg', chat.send_message, pass_args=True))
+    dispatcher.add_handler(CommandHandler('poll_msgs', chat.poll_messages, pass_args=True))
 
     updater.start_polling()
     updater.idle()

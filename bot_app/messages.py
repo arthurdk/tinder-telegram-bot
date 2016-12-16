@@ -2,7 +2,8 @@ import bot_app.settings as settings
 
 # Help messages for all the bot commands. Use the internal function names as key!
 help_messages = {}
-help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nZou can get the match-id by executing /matches"
+help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nYou can get the match-id by executing /matches"
+help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches"
 
 # All normal messages sent to the user
 messages = {}
@@ -19,13 +20,26 @@ def debug(bot, chat_id, message):
 
 
 def send_help(bot, chat_id, command, error=""):
-    message = error + "\n" + help_messages[command]
+    if not command in help_messages:
+        raise Exception('Unknown command: ' + command)
+
+    message = ""
+    if error != "":
+        message = "Error: " + error + "\n"
+
+    message += help_messages[command]
     bot.sendMessage(chat_id, text=message)
 
 def send_message(bot, chat_id, name):
+    if not name in messages:
+        raise Exception('Unknown message: ' + name)
+
     bot.sendMessage(chat_id, text=messages[name])
 
 def send_error(bot, chat_id, name):
+    if not name in error_messages:
+        raise Exception('Unknown error messages: ' + name)
+
     bot.sendMessage(chat_id, text=error_messages[name])
 
 def send_custom_message(bot, chat_id, message):

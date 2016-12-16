@@ -255,8 +255,6 @@ def set_account(bot, update):
                         text="Please send me your authentication token in our private conversation @TinderGroupBot",
                         reply_to_message_id=update.message.message_id)
         msg += " for the group %s" % update.message.chat.title
-    else:
-        msg += " in our private conversation."
     bot.sendMessage(sender, text=msg)
 
 

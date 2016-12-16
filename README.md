@@ -27,8 +27,10 @@ If you join a group where a bot is active, remember to start a conversation with
 | /new_vote                     |                                     Begin a new vote session if one is not happening                                    |
 | /matches                      |          Receives the current matches of the connected Tinder account to your private conversation with the bot         |
 | /auto                         |                        Toggle automatic mode (the bot will begin new vote session automatically)                        |
-| /location,60.169101 24.932847 |                                        Change your location using GPS coordinates                                       |
-| /timeout 50                   | Change the duration on how many seconds the bot will wait after the first vote                                          |
+| /location                     |                                        Change your location using GPS coordinates. Usage: /location 60.169101 24.932847 |
+| /timeout                      | Change the duration on how many seconds the bot will wait after the first vote. Usage: /timeout <time>                  |
+| /msg                          | Send a message to a match. Usage: /msg <match-id> <message> You can get the match-id by executing /matches.             |
+| /poll_msgs                    | Read messages from a conversation. Usage: /poll_msgs <match-id> <nb_messages>                                           |
 
 Note: Only one person needs to set the Tinder account in order for the bot to work. The others can just enjoy.
 
@@ -62,6 +64,8 @@ Note: This was tested by not having the Facebook application on the phone but it
 
 
 ## Installation
+
+First get your Bot Api Key from the [BotFather](https://core.telegram.org/bots#3-how-do-i-create-a-bot).
 
 ### Docker (from DockerHub)
 
@@ -112,6 +116,7 @@ Create file containing the bot api key.
 cat > bot_app/settings.py << EOL
 KEY = "YOUR_KEY_HERE"
 DB_NAME = 'tinderbot.sqlite3'
+DEBUG_MODE = False
 EOL
 ```
 
@@ -120,8 +125,32 @@ Launch the bot:
 python3.5 bot_app/Bot.py
 ```
 
+### In chat autocompletion
+
+Again you will need to talk to the BotFather, edit the commands of your bot and write the following:
+
+```
+set_account - Specify your Tinder authentication token for Facebook
+new_vote - Launch new vote session
+matches - View already matched user
+auto - Toggle automatic mode for launching vote session
+location - Update the location (Example /location 60.166807 24.931737)
+timeout - Set the timeout for voting session (Example /timeout 60)
+msg - Send a message to a match
+poll_msgs - Read messages for a specific conversation
+```
+
+And do not forget to delete your bot from the conversation and add it again.
+
+If you are in a private conversation with the bot delete the conversation and start afresh.
+
 #### Troubleshooting:
 In case the module is not recognized:
 ```
 export PYTHONPATH=.
 ```
+
+## License
+----
+
+MIT

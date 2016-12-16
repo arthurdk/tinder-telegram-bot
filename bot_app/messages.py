@@ -18,11 +18,15 @@ def debug(bot, chat_id, message):
         bot.sendMessage(chat_id, text=message)
 
 
-def send_help(bot, chat_id, command):
-    bot.sendMessage(chat_id, text=help_messages[command])
+def send_help(bot, chat_id, command, error=""):
+    message = error + "\n" + help_messages[command]
+    bot.sendMessage(chat_id, text=message)
 
 def send_message(bot, chat_id, name):
     bot.sendMessage(chat_id, text=messages[name])
 
 def send_error(bot, chat_id, name):
     bot.sendMessage(chat_id, text=error_messages[name])
+
+def send_custom_message(bot, chat_id, message):
+    bot.sendMessage(chat_id, text=message)

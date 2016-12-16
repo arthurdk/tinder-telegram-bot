@@ -42,7 +42,6 @@ def list_settings(bot, update):
 
     send_custom_message(bot, chat_id, message)
 
-
 def set_setting(bot, update, args):
     global data
 

@@ -6,7 +6,7 @@ help_messages = {}
 help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nYou can get the match-id by executing /matches."
 help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches."
 help_messages["set_location"] = "Usage of /set_location:\n/set_location <latitude> <longitude>\nYou can also just use telegram to send a location to the group."
-help_messages["set_setting"] = "Usage of /set_setting:\n/set_setting <setting> <value>\nCommand may only be used by account owner if an account is set."
+help_messages["set_setting"] = "Usage of /set_setting:\n/set_setting <setting> <value>\nCommand may only be used by account owner."
 
 help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
@@ -26,7 +26,7 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
                         "_Configuration:_\n" \
                         " * Use /list_settings to list all settings and their values.\n" \
-                        " * Use /set_setting to change a setting. If an account is set, this command can only be executed by the account owner."
+                        " * Use /set_setting to change a setting.This command can only be executed by the account owner."
 
 # All normal messages sent to the user
 messages = {}

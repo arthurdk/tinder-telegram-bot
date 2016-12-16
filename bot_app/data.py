@@ -1,0 +1,2 @@
+global conversations
+conversations = {}

@@ -12,6 +12,7 @@ import bot_app.settings as settings
 from bot_app.model import Conversation, Vote
 import bot_app.chat as chat
 from bot_app.messages import *
+from bot_app.data import *
 # import peewee as pw
 
 
@@ -20,8 +21,6 @@ logging.basicConfig(level=logging.DEBUG,
 
 global change_account_queries
 change_account_queries = {}
-global conversations
-conversations = {}
 
 
 def start(bot, update):

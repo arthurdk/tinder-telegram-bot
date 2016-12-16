@@ -2,8 +2,9 @@ import bot_app.settings as settings
 
 # Help messages for all the bot commands. Use the internal function names as key!
 help_messages = {}
-help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nYou can get the match-id by executing /matches"
-help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches"
+help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nYou can get the match-id by executing /matches."
+help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches."
+help_messages["set_location"] = "Usage of /set_location:\n/set_location <latitude> <longitude>\nYou can also just use telegram to send a location to the group."
 
 help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
@@ -26,9 +27,12 @@ messages = {}
 messages["welcome"] = 'Hey ! \nFirst things first, you will need to set your authentication ' \
                       'token using the /set_account command if you want to link your Tinder account.\n' \
                       'If you need help, type /help!'
+messages["location_updated"] = "Location updated."
+
 # Error messages
 error_messages = {}
 error_messages["account_not_setup"] = "Chat not registered yet, please add token."
+error_messages["unknown_match_id"] = "Unknown match-id."
 
 ### Functions for sending messages to the user ###
 

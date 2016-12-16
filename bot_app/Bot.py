@@ -46,18 +46,17 @@ def set_location(bot, update, args):
     chat_id = update.message.chat_id
     if chat_id in conversations:
         if len(args) != 2:
-            message = "You need to send your location along with the command (latitude and longitude)"
-        else:
-            try:
-                latitude = args[0]
-                longitude = args[1]
-                conversations[chat_id].session.update_location(latitude, longitude)
-                message = "Location updated."
-                conversations[chat_id].refresh_users()
-                send_location(latitude=latitude, longitude=longitude, bot=bot, chat_id=chat_id)
-            except AttributeError as e:
-                message = "Facebook token needs to be set up first."
-        bot.sendMessage(chat_id, text=message)
+            send_help(bot, chat_id, "set_location", "Wrong number of arguments")
+            return
+        try:
+            latitude = args[0]
+            longitude = args[1]
+            conversations[chat_id].session.update_location(latitude, longitude)
+            send_message(bot, chat_id, "location_updated")
+            conversations[chat_id].refresh_users()
+            send_location(latitude=latitude, longitude=longitude, bot=bot, chat_id=chat_id)
+        except AttributeError as e:
+            send_help(bot, chat_id, "set_location", "Facebook token needs to be set first")
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
@@ -252,11 +251,11 @@ def set_account(bot, update):
     msg = "Send me your facebook authentication token"
     if update.message.chat.type == "group":
         bot.sendMessage(change_account_queries[sender],
-                        text="Please send me your authentication token on our private conversation @TinderGroupBot",
+                        text="Please send me your authentication token in our private conversation @TinderGroupBot",
                         reply_to_message_id=update.message.message_id)
         msg += " for the group %s" % update.message.chat.title
     else:
-        msg += " for our private conversation."
+        msg += " in our private conversation."
     bot.sendMessage(sender, text=msg)
 
 

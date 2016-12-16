@@ -42,6 +42,7 @@ error_messages = {}
 error_messages["account_not_setup"] = "Chat not registered yet, please add token."
 error_messages["unknown_match_id"] = "Unknown match-id."
 error_messages["command_not_allowed"] = "This command must not be executed by this user."
+error_messages["range_too_large"] = "The given range is too large. Maximum size currently allowed is 100."
 
 ### Functions for sending messages to the user ###
 

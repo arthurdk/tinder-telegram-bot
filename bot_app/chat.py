@@ -3,6 +3,8 @@ from telegram.ext.dispatcher import run_async
 from bot_app.messages import *
 from bot_app.admin import *
 import bot_app.data as data
+import datetime
+import time
 
 
 @run_async
@@ -26,40 +28,72 @@ def send_message(bot, update, args):
         return
 
     try:
-        match_id = int(args[0])
+        match_ids = parse_range(bot, chat_id, args[0])
     except ValueError:
         send_help(bot, chat_id, "send_message", "First argument must be an integer")
         return
 
-    destination = get_match(bot, update, match_id)
-    if destination is None:
-        return
-
+    matches = data.conversations[chat_id].session.matches()
     message = " ".join(args[1:])
 
-    destination.message(message)
+    for match_id in match_ids:
+        destination = get_match(bot, update, match_id, matches)
+        destination.message(message)
 
-    destination = get_match(bot, update, match_id)
-    if destination is None:
-        return
+    matches = data.conversations[chat_id].session.matches()
 
-    send_custom_message(bot, chat_id, poll_last_messages_as_string(destination, 5))
+    for match_id in match_ids:
+        destination = get_match(bot, update, match_id, matches)
+
+        if destination is not None:
+            send_custom_message(bot, chat_id, poll_last_messages_as_string(destination, 5))
 
 
 def poll_last_messages(match, n):
     return match.messages[-n:]
 
 
-def get_match(bot, update, id):
+def get_match(bot, update, id, matches=None):
     global data
     chat_id = update.message.chat_id
-    matches = data.conversations[chat_id].session.matches()
+
+    if matches is None:
+        matches = data.conversations[chat_id].session.matches()
 
     if id < 0 or id >= len(matches):
         send_error(bot, chat_id, "unknown_match_id")
         return None
 
     return matches[id]
+
+def parse_range(bot, chat_id, range_string):
+    ranges = range_string.split(',')
+    result = []
+
+    for r in ranges:
+        if len(result) > 100:
+            send_error(bot, chat_id, "range_too_large")
+            return []
+
+        if "-" in r:
+            r = r.split('-')
+
+            a = int(r[0])
+            b = int(r[1])
+
+            if a < 0 or b < 0:
+                send_error(bot, chat_id, "unknown_match_id")
+                return []
+
+            if b - a > 100:
+                send_error(bot, chat_id, "range_too_large")
+                return []
+
+            result += range(int(r[0]), int(r[1]) + 1)
+        else:
+            result += [int(r)]
+
+    return result
 
 
 def poll_last_messages_as_string(match, n):
@@ -68,7 +102,23 @@ def poll_last_messages_as_string(match, n):
 
     for m in poll_last_messages(match, n):
         has_messages = True
-        last_messages += m._data["sent_date"] + " " + m.sender.name + ": " + m.body + "\n"
+
+        date = datetime.datetime.strptime(m._data["sent_date"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        now = datetime.datetime.now()
+
+        ts = time.time()
+        utc_offset = (datetime.datetime.fromtimestamp(ts) -
+                      datetime.datetime.utcfromtimestamp(ts)).total_seconds()
+
+        date += datetime.timedelta(seconds=utc_offset)
+        now += datetime.timedelta(seconds=utc_offset)
+
+        if now.day == date.day and now.month == date.month and now.year == date.year:
+            strdate = date.strftime("%H:%M")
+        else:
+            strdate = date.strftime("%Y-%m-%d %H:%M")
+
+        last_messages += strdate + " " + m.sender.name + ": " + m.body + "\n"
 
     if not has_messages:
         last_messages = "No messages found for " + match.user.name
@@ -95,7 +145,7 @@ def poll_messages(bot, update, args):
         return
 
     try:
-        match_id = int(args[0])
+        match_ids = parse_range(bot, chat_id, args[0])
     except ValueError:
         send_help(bot, chat_id, "poll_messages", "First argument must be an integer")
         return
@@ -113,8 +163,9 @@ def poll_messages(bot, update, args):
     if n > 100:
         send_help(bot, chat_id, "poll_messages", "<n> must be smaller than a hundred.")
 
-    match = get_match(bot, update, match_id)
-    if match is None:
-        return
+    matches = data.conversations[chat_id].session.matches()
+    for match_id in match_ids:
+        match = get_match(bot, update, match_id, matches)
 
-    send_custom_message(bot, chat_id, poll_last_messages_as_string(match, n))
+        if match is not None:
+            send_custom_message(bot, chat_id, poll_last_messages_as_string(match, n))

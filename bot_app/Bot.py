@@ -10,6 +10,8 @@ import time
 # from bot_app.db_model import Conversation, db
 import bot_app.settings as settings
 from bot_app.model import Conversation, Vote
+import bot_app.chat as chat
+from bot_app.messages import *
 # import peewee as pw
 
 
@@ -122,10 +124,13 @@ def send_matches(bot, update):
     if chat_id in conversations:
         try:
             matches = conversations[chat_id].session.matches()
+            id = 0
+
             for match in matches:
                 photo = match.user.get_photos(width='172')[0]
                 try:
-                    bot.sendPhoto(chat_id=sender_id, photo=photo, caption=match.user.name)
+                    bot.sendPhoto(chat_id=sender_id, photo=photo, caption=match.user.name + " ID=" + str(id))
+                    id += 1
                 except error.BadRequest:
                     bot.sendMessage(sender_id, text="One match could not be loaded: %s" % photo)
                 time.sleep(0.1)
@@ -289,7 +294,6 @@ def alarm_vote(bot, chat_id, job_queue):
         job = Job(start_vote, 0, repeat=False, context=chat_id)
         job_queue.put(job)
 
-
 def message_handler(bot, update):
     global conversations
     global change_account_queries
@@ -311,11 +315,6 @@ def message_handler(bot, update):
     # Ignore reply to the bot in groups
     elif update.message.chat.type != "group":
         update.message.reply_text("I'm sorry Dave I'm afraid I can't do that.")
-
-
-def send_account_not_setup(bot, chat_id):
-    bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
-
 
 def main():
     """
@@ -339,6 +338,10 @@ def main():
     dispatcher.add_handler(MessageHandler(Filters.location, update_location))
     dispatcher.add_handler(CommandHandler('new_vote', start_vote_session, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler('timeout', set_timeout, pass_args=True))
+
+    # Chat functionality
+    dispatcher.add_handler(CommandHandler('msg', chat.send_message, pass_args=True))
+
     updater.start_polling()
     updater.idle()
 

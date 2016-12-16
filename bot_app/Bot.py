@@ -11,6 +11,7 @@ import time
 import bot_app.settings as settings
 from bot_app.model import Conversation, Vote
 import bot_app.chat as chat
+import bot_app.admin as admin
 from bot_app.messages import *
 from bot_app.data import *
 # import peewee as pw
@@ -282,8 +283,11 @@ def alarm_vote(bot, chat_id, job_queue):
 def message_handler(bot, update):
     global conversations
     global change_account_queries
+    global owner
+
     chat_id = update.message.chat_id
     sender = update.message.from_user.id
+
     if sender in change_account_queries:
         try:
             # Create Tinder session
@@ -294,9 +298,12 @@ def message_handler(bot, update):
             conversation = Conversation(change_account_queries[sender], session)
             conversations[change_account_queries[sender]] = conversation
             del change_account_queries[sender]
+
+            owner = sender
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)
+
     # Ignore reply to the bot in groups
     elif update.message.chat.type != "group":
         update.message.reply_text("I'm sorry Dave I'm afraid I can't do that.")
@@ -329,6 +336,10 @@ def main():
     # Chat functionality
     dispatcher.add_handler(CommandHandler('msg', chat.send_message, pass_args=True))
     dispatcher.add_handler(CommandHandler('poll_msgs', chat.poll_messages, pass_args=True))
+
+    # Settings
+    dispatcher.add_handler(CommandHandler('set_setting', admin.set_setting, pass_args=True))
+    dispatcher.add_handler(CommandHandler('list_settings', admin.list_settings))
 
     updater.start_polling()
     updater.idle()

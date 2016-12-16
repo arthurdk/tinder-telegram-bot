@@ -1,16 +1,25 @@
+from telegram.ext.dispatcher import run_async
+
 from bot_app.messages import *
 from bot_app.data import *
-from telegram.ext.dispatcher import run_async
+from bot_app.admin import *
 
 
 @run_async
 def send_message(bot, update, args):
     global conversations
+    global owner
+    global settings
+
     chat_id = update.message.chat_id
+    sender = update.message.from_user.id
 
     if not chat_id in conversations:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
         return
+
+    if (not settings.get_setting("everybody_can_send_messages")) and sender != owner:
+        send_error(bot, chat_id, "command_not_allowed")
 
     if len(args) < 2:
         send_help(bot, chat_id, "send_message")

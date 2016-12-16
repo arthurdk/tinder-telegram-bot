@@ -5,6 +5,7 @@ help_messages = {}
 help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nYou can get the match-id by executing /matches."
 help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches."
 help_messages["set_location"] = "Usage of /set_location:\n/set_location <latitude> <longitude>\nYou can also just use telegram to send a location to the group."
+help_messages["set_setting"] = "Usage of /set_setting:\n/set_setting <setting> <value>\nCommand may only be used by account owner if an account is set."
 
 help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
@@ -20,7 +21,11 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
                         "_Chatting with matches:_\n" \
                         " * Use /matches to list your matches in your private chat. Every match has an id. It can change if old matches unmatch.\n" \
-                        " * Use /msg to send a message to a match, and /poll_msgs to get the chat history with a match."
+                        " * Use /msg to send a message to a match, and /poll_msgs to get the chat history with a match.\n" \
+                        "\n" \
+                        "_Configuration:_\n" \
+                        " * Use /list_settings to list all settings and their values.\n" \
+                        " * Use /set_setting to change a setting. If an account is set, this command can only be executed by the account owner."
 
 # All normal messages sent to the user
 messages = {}
@@ -28,11 +33,13 @@ messages["welcome"] = 'Hey ! \nFirst things first, you will need to set your aut
                       'token using the /set_account command if you want to link your Tinder account.\n' \
                       'If you need help, type /help!'
 messages["location_updated"] = "Location updated."
+messages["setting_updated"] = "Setting updated."
 
 # Error messages
 error_messages = {}
 error_messages["account_not_setup"] = "Chat not registered yet, please add token."
 error_messages["unknown_match_id"] = "Unknown match-id."
+error_messages["command_not_allowed"] = "This command must not be executed by this user."
 
 ### Functions for sending messages to the user ###
 

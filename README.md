@@ -31,6 +31,9 @@ If you join a group where a bot is active, remember to start a conversation with
 | /timeout                      | Change the duration on how many seconds the bot will wait after the first vote. Usage: /timeout <time>                  |
 | /msg                          | Send a message to a match. Usage: /msg <match-id> <message> You can get the match-id by executing /matches.             |
 | /poll_msgs                    | Read messages from a conversation. Usage: /poll_msgs <match-id> <nb_messages>                                           |
+| /list_settings                | List all settings and their values.                                                                                     |
+| /set_settings                 | Change a setting. If an account is set, this command can only be executed by the account owner.                         |
+
 
 Note: Only one person needs to set the Tinder account in order for the bot to work. The others can just enjoy.
 
@@ -138,6 +141,8 @@ location - Update the location (Example /location 60.166807 24.931737)
 timeout - Set the timeout for voting session (Example /timeout 60)
 msg - Send a message to a match
 poll_msgs - Read messages for a specific conversation
+list_settings - List all settings and their values.
+set_setting - Change a setting. If an account is set, this command can only be executed by the account owner.
 ```
 
 And do not forget to delete your bot from the conversation and add it again.

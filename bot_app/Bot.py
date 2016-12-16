@@ -57,6 +57,11 @@ def send_location(latitude, longitude, bot, chat_id):
     bot.sendLocation(chat_id, latitude=latitude, longitude=longitude)
 
 
+def update_location(bot, update):
+    location = update.message.location
+    set_location(bot, update, [location.latitude, location.longitude])
+
+
 def set_location(bot, update, args):
     global conversations
     chat_id = update.message.chat_id
@@ -74,6 +79,8 @@ def set_location(bot, update, args):
             except AttributeError as e:
                 message = "Facebook token needs to be set up first."
         bot.sendMessage(chat_id, text=message)
+    else:
+        bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
 
 
 def set_timeout(bot, update, args):
@@ -89,6 +96,8 @@ def set_timeout(bot, update, args):
             except AttributeError:
                 message = "An error happened."
         bot.sendMessage(chat_id, text=message)
+    else:
+        bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
 
 
 def set_auto(bot, update):
@@ -101,6 +110,8 @@ def set_auto(bot, update):
         else:
             message = "Automatic mode disabled."
         bot.sendMessage(chat_id, text=message)
+    else:
+        bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
 
 
 @run_async
@@ -121,6 +132,8 @@ def send_matches(bot, update):
         except AttributeError as e:
             message = "An error happened."
             bot.sendMessage(sender_id, text=message)
+    else:
+        bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
 
 
 def start_vote_session(bot, update, job_queue):
@@ -231,7 +244,8 @@ def send_more_photos(private_chat_id, group_chat_id, bot):
         else:
             message = "There is not vote going on right now."
             bot.sendMessage(private_chat_id, text=message)
-
+    else:
+        bot.sendMessage(group_chat_id, text="Chat not registered yet, please add token.")
 """
 def send_bio(private_chat_id, group_chat_id, bot):
     global conversations
@@ -292,7 +306,8 @@ def message_handler(bot, update):
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)
-    else:
+    # Ignore reply to the bot in groups
+    elif update.message.chat.type != "group":
         update.message.reply_text("I'm sorry Dave I'm afraid I can't do that.")
 
 
@@ -315,6 +330,7 @@ def main():
     dispatcher.add_handler(CommandHandler('matches', send_matches))
     dispatcher.add_handler(CallbackQueryHandler(do_vote, pass_job_queue=True))
     dispatcher.add_handler(MessageHandler(Filters.text, message_handler))
+    dispatcher.add_handler(MessageHandler(Filters.location, update_location))
     dispatcher.add_handler(CommandHandler('new_vote', start_vote_session, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler('timeout', set_timeout, pass_args=True))
     updater.start_polling()

@@ -26,9 +26,7 @@ conversations = {}
 
 def start(bot, update):
     chat_id = update.message.chat_id
-    message = 'Hey ! \nFirst things first, you will need to set your authentication ' \
-              'token using the /set_account command if you want to link your Tinder account.'
-    bot.sendMessage(chat_id, text=message)
+    send_message(bot, chat_id, "welcome")
 
 
 def create_pynder_session(fb_token):
@@ -62,7 +60,7 @@ def set_location(bot, update, args):
                 message = "Facebook token needs to be set up first."
         bot.sendMessage(chat_id, text=message)
     else:
-        send_account_not_setup(bot=bot, chat_id=chat_id)
+        send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
 def set_timeout(bot, update, args):
@@ -79,7 +77,7 @@ def set_timeout(bot, update, args):
                 message = "An error happened."
         bot.sendMessage(chat_id, text=message)
     else:
-        send_account_not_setup(bot=bot, chat_id=chat_id)
+        send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
 def set_auto(bot, update):
@@ -93,7 +91,7 @@ def set_auto(bot, update):
             message = "Automatic mode disabled."
         bot.sendMessage(chat_id, text=message)
     else:
-        send_account_not_setup(bot=bot, chat_id=chat_id)
+        send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
 @run_async
@@ -118,7 +116,7 @@ def send_matches(bot, update):
             message = "An error happened."
             bot.sendMessage(sender_id, text=message)
     else:
-        send_account_not_setup(bot=bot, chat_id=chat_id)
+        send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
 def start_vote_session(bot, update, job_queue):
@@ -172,7 +170,7 @@ def start_vote(bot, job):
             bot.sendMessage(job.context, text="Current vote is not finished yet.",
                             reply_to_message_id=conversation.vote_msg.message_id)
     else:
-        send_account_not_setup(bot=bot, chat_id=chat_id)
+        send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
 def get_vote_keyboard(chat_id):
@@ -232,7 +230,8 @@ def send_more_photos(private_chat_id, group_chat_id, bot):
             message = "There is not vote going on right now."
             bot.sendMessage(private_chat_id, text=message)
     else:
-        send_account_not_setup(bot=bot, chat_id=group_chat_id)
+        send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
+
 """
 def send_bio(private_chat_id, group_chat_id, bot):
     global conversations

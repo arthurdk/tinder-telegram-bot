@@ -8,7 +8,6 @@ import logging
 import pynder
 import time
 # from bot_app.db_model import Conversation, db
-import bot_app.settings as settings
 from bot_app.model import Conversation, Vote
 import bot_app.chat as chat
 import bot_app.admin as admin
@@ -282,6 +281,7 @@ def alarm_vote(bot, chat_id, job_queue):
 
 def message_handler(bot, update):
     global data
+    global admin
     global change_account_queries
 
     chat_id = update.message.chat_id
@@ -299,6 +299,7 @@ def message_handler(bot, update):
             del change_account_queries[sender]
 
             conversation.owner = sender
+            conversation.settings = admin.Settings()
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)

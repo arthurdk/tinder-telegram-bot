@@ -26,6 +26,10 @@ def list_settings(bot, update):
 
     chat_id = update.message.chat_id
 
+    if chat_id not in data.conversations:
+        send_error(bot, chat_id, "account_not_setup")
+        return
+
     message = "Settings:\n"
 
     for s in settings.settings.keys():
@@ -38,6 +42,10 @@ def set_setting(bot, update, args):
     global settings
 
     chat_id = update.message.chat_id
+
+    if chat_id not in data.conversations:
+        send_error(bot, chat_id, "account_not_setup")
+        return
 
     if update.message.from_user.id != data.conversations[chat_id].owner and data.conversations[chat_id].owner is not None:
         send_error(bot, chat_id, "command_not_allowed")

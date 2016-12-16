@@ -1,25 +1,24 @@
 from telegram.ext.dispatcher import run_async
 
 from bot_app.messages import *
-from bot_app.data import *
 from bot_app.admin import *
-
+import bot_app.data as data
 
 @run_async
 def send_message(bot, update, args):
-    global conversations
-    global owner
+    global data
     global settings
 
     chat_id = update.message.chat_id
     sender = update.message.from_user.id
 
-    if not chat_id in conversations:
+    if not chat_id in data.conversations:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
         return
 
-    if (not settings.get_setting("everybody_can_send_messages")) and sender != owner:
+    if ensure_setting_is_unset(bot, chat_id, "everybody_can_send_messages", sender == data.owner):
         send_error(bot, chat_id, "command_not_allowed")
+        return
 
     if len(args) < 2:
         send_help(bot, chat_id, "send_message")
@@ -50,9 +49,9 @@ def poll_last_messages(match, n):
     return match.messages[-n:]
 
 def get_match(bot, update, id):
-    global conversations
+    global data
     chat_id = update.message.chat_id
-    matches = conversations[chat_id].session.matches()
+    matches = data.conversations[chat_id].session.matches()
 
     if id < 0 or id >= len(matches):
         send_error(bot, chat_id, "unknown_match_id")
@@ -74,11 +73,14 @@ def poll_last_messages_as_string(match, n):
     return last_messages
 
 def poll_messages(bot, update, args):
-    global conversations
+    global data
     chat_id = update.message.chat_id
 
-    if not chat_id in conversations:
+    if not chat_id in data.conversations:
         send_error(bot, chat_id, "account_not_setup")
+        return
+
+    if not ensure_setting_is_set(bot, chat_id, "enable_message_polling"):
         return
 
     if len(args) < 2:

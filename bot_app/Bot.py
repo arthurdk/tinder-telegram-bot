@@ -13,7 +13,7 @@ from bot_app.model import Conversation, Vote
 import bot_app.chat as chat
 import bot_app.admin as admin
 from bot_app.messages import *
-from bot_app.data import *
+import bot_app.data as data
 # import peewee as pw
 
 
@@ -21,7 +21,6 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 change_account_queries = {}
-global conversations
 
 
 def start(bot, update):
@@ -43,18 +42,18 @@ def update_location(bot, update):
 
 
 def set_location(bot, update, args):
-    global conversations
+    global data
     chat_id = update.message.chat_id
-    if chat_id in conversations:
+    if chat_id in data.conversations:
         if len(args) != 2:
             send_help(bot, chat_id, "set_location", "Wrong number of arguments")
             return
         try:
             latitude = args[0]
             longitude = args[1]
-            conversations[chat_id].session.update_location(latitude, longitude)
+            data.conversations[chat_id].session.update_location(latitude, longitude)
             send_message(bot, chat_id, "location_updated")
-            conversations[chat_id].refresh_users()
+            data.conversations[chat_id].refresh_users()
             send_location(latitude=latitude, longitude=longitude, bot=bot, chat_id=chat_id)
         except AttributeError as e:
             send_help(bot, chat_id, "set_location", "Facebook token needs to be set first")
@@ -63,14 +62,14 @@ def set_location(bot, update, args):
 
 
 def set_timeout(bot, update, args):
-    global conversations
+    global data
     chat_id = update.message.chat_id
-    if chat_id in conversations:
+    if chat_id in data.conversations:
         if len(args) != 1:
             message = "You need to send the time in seconds along with the command"
         else:
             try:
-                conversations[chat_id].timeout = int(args[0])
+                data.conversations[chat_id].timeout = int(args[0])
                 message = "Timeout updated to %d seconds." % conversations[chat_id].timeout
             except AttributeError:
                 message = "An error happened."
@@ -80,11 +79,11 @@ def set_timeout(bot, update, args):
 
 
 def set_auto(bot, update):
-    global conversations
+    global data
     chat_id = update.message.chat_id
-    if chat_id in conversations:
-        conversations[chat_id].auto = not conversations[chat_id].auto
-        if conversations[chat_id].auto:
+    if chat_id in data.conversations:
+        data.conversations[chat_id].auto = not data.conversations[chat_id].auto
+        if data.conversations[chat_id].auto:
             message = "Automatic mode enabled."
         else:
             message = "Automatic mode disabled."
@@ -95,12 +94,12 @@ def set_auto(bot, update):
 
 @run_async
 def send_matches(bot, update):
-    global conversations
+    global data
     chat_id = update.message.chat_id
     sender_id = update.message.from_user.id
-    if chat_id in conversations:
+    if chat_id in data.conversations:
         try:
-            matches = conversations[chat_id].session.matches()
+            matches = data.conversations[chat_id].session.matches()
             id = 0
 
             for match in matches:
@@ -131,10 +130,10 @@ def get_question_match(conversation):
 
 
 def start_vote(bot, job):
-    global conversations
+    global data
     chat_id = job.context
-    if chat_id in conversations:
-        conversation = conversations[chat_id]
+    if chat_id in data.conversations:
+        conversation = data.conversations[chat_id]
         if not conversation.is_voting:
             conversation.set_is_voting(True)
             # Fetch nearby users
@@ -173,8 +172,8 @@ def start_vote(bot, job):
 
 
 def get_vote_keyboard(chat_id):
-    global conversations
-    if chat_id in conversations:
+    global data
+    if chat_id in data.conversations:
         likes, dislikes = conversations[chat_id].get_stats()
         like_label = "❤️ (%d)" % likes
         dislike_label = "❌ (%d)" % dislikes
@@ -188,6 +187,7 @@ def get_vote_keyboard(chat_id):
 
 
 def do_vote(bot, update, job_queue):
+    global data
     chat_id = update.callback_query.message.chat_id
     query = update.callback_query
     sender = query.from_user.id
@@ -195,10 +195,10 @@ def do_vote(bot, update, job_queue):
     if query.data == Vote.MORE:
         send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot)
     else:
-        conversations[chat_id].current_votes[sender] = query.data
+        data.conversations[chat_id].current_votes[sender] = query.data
         # Schedule end of voting session
-        if not conversations[chat_id].is_alarm_set:
-            conversations[chat_id].is_alarm_set = True
+        if not data.conversations[chat_id].is_alarm_set:
+            data.conversations[chat_id].is_alarm_set = True
             alarm_vote(bot, chat_id, job_queue)
 
     # Send back updated inline keyboard
@@ -218,12 +218,12 @@ def send_more_photos(private_chat_id, group_chat_id, bot):
     :param bot:
     :return:
     """
-    global conversations
-    if group_chat_id in conversations:
-        if conversations[group_chat_id].is_voting:
-            photos = conversations[group_chat_id].current_user.get_photos(width='320')
+    global data
+    if group_chat_id in data.conversations:
+        if data.conversations[group_chat_id].is_voting:
+            photos = data.conversations[group_chat_id].current_user.get_photos(width='320')
             for idx, photo in enumerate(photos):
-                caption = " %s (%d/%d) " % (conversations[group_chat_id].current_user.name, idx + 1, len(photos))
+                caption = " %s (%d/%d) " % (data.conversations[group_chat_id].current_user.name, idx + 1, len(photos))
                 bot.sendPhoto(private_chat_id, photo=photo, caption=caption)
         else:
             message = "There is not vote going on right now."
@@ -262,7 +262,9 @@ def set_account(bot, update):
 
 @run_async
 def alarm_vote(bot, chat_id, job_queue):
-    conversation = conversations[chat_id]
+    global data
+
+    conversation = data.conversations[chat_id]
     time.sleep(conversation.timeout)
     msg = conversation.result_msg
     likes, dislikes = conversation.get_stats()
@@ -281,9 +283,8 @@ def alarm_vote(bot, chat_id, job_queue):
 
 
 def message_handler(bot, update):
-    global conversations
+    global data
     global change_account_queries
-    global owner
 
     chat_id = update.message.chat_id
     sender = update.message.from_user.id
@@ -296,10 +297,10 @@ def message_handler(bot, update):
             bot.sendMessage(chat_id=change_account_queries[sender], text=message)
             # Create conversation
             conversation = Conversation(change_account_queries[sender], session)
-            conversations[change_account_queries[sender]] = conversation
+            data.conversations[change_account_queries[sender]] = conversation
             del change_account_queries[sender]
 
-            owner = sender
+            data.owner = sender
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)

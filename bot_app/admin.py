@@ -1,9 +1,10 @@
 from bot_app.messages import *
-from bot_app.data import *
+import bot_app.data as data
 
 class Settings:
     settings = {}
     settings["everybody_can_send_messages"] = False
+    settings["enable_message_polling"] = False
 
     def set_setting(self, setting, value):
         if not setting in self.settings.keys():
@@ -21,7 +22,6 @@ class Settings:
 settings = Settings()
 
 def list_settings(bot, update):
-    global conversations
     global settings
 
     chat_id = update.message.chat_id
@@ -34,13 +34,12 @@ def list_settings(bot, update):
     send_custom_message(bot, chat_id, message)
 
 def set_setting(bot, update, args):
-    global conversations
+    global data
     global settings
-    global owner
 
     chat_id = update.message.chat_id
 
-    if update.message.from_user.id != owner and owner is not None:
+    if update.message.from_user.id != data.owner and data.owner is not None:
         send_error(bot, chat_id, "command_not_allowed")
         return
 
@@ -54,3 +53,15 @@ def set_setting(bot, update, args):
 
     settings.set_setting(args[0], args[1])
     send_message(bot, chat_id, "setting_updated")
+
+def ensure_setting_is_unset(bot, chat_id, name, bypass = True):
+    global settings
+
+    if bypass:
+        return False
+
+    if not settings.get_setting(name):
+        send_custom_message(bot, chat_id, "Error: " + name + " not set.")
+        return True
+
+    return False

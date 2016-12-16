@@ -1,3 +1,2 @@
 conversations = {}
-
 owner = None

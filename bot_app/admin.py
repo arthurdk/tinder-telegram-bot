@@ -3,8 +3,7 @@ import bot_app.data as data
 
 class Settings:
     settings = {}
-    settings["everybody_can_send_messages"] = False
-    settings["enable_message_polling"] = False
+    settings["chat_mode"] = "off"
 
     def set_setting(self, setting, value):
         if not setting in self.settings.keys():

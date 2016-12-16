@@ -22,6 +22,7 @@ class Conversation:
         self.result_msg = None
         self.timeout = 60
         self.auto = False
+        self.vote_msg = None
 
     def refresh_users(self):
         self.users = self.session.nearby_users()

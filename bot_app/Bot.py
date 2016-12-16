@@ -24,8 +24,8 @@ conversations = {}
 
 def start(bot, update):
     chat_id = update.message.chat_id
-    message = 'Hey ! \nFirst things first, you will need to set your Facebook authentication ' \
-              'token using the /set_account command'
+    message = 'Hey ! \nFirst things first, you will need to set your authentication ' \
+              'token using the /set_account command if you want to link your Tinder account.'
     bot.sendMessage(chat_id, text=message)
 
 '''
@@ -80,7 +80,7 @@ def set_location(bot, update, args):
                 message = "Facebook token needs to be set up first."
         bot.sendMessage(chat_id, text=message)
     else:
-        bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
+        send_account_not_setup(bot=bot, chat_id=chat_id)
 
 
 def set_timeout(bot, update, args):
@@ -97,7 +97,7 @@ def set_timeout(bot, update, args):
                 message = "An error happened."
         bot.sendMessage(chat_id, text=message)
     else:
-        bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
+        send_account_not_setup(bot=bot, chat_id=chat_id)
 
 
 def set_auto(bot, update):
@@ -111,7 +111,7 @@ def set_auto(bot, update):
             message = "Automatic mode disabled."
         bot.sendMessage(chat_id, text=message)
     else:
-        bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
+        send_account_not_setup(bot=bot, chat_id=chat_id)
 
 
 @run_async
@@ -133,7 +133,7 @@ def send_matches(bot, update):
             message = "An error happened."
             bot.sendMessage(sender_id, text=message)
     else:
-        bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
+        send_account_not_setup(bot=bot, chat_id=chat_id)
 
 
 def start_vote_session(bot, update, job_queue):
@@ -164,6 +164,7 @@ def start_vote(bot, job):
             if len(conversation.users) == 0:
                 bot.sendMessage(job.context, text="There are no other users available.")
             else:
+
                 # Assign user
                 conversation.current_user = conversation.users[0]
                 del conversation.users[0]
@@ -175,17 +176,18 @@ def start_vote(bot, job):
                 # Append bio to caption if it's not empty
                 if len(conversation.current_user.bio) > 0:
                     name += "\n" + conversations[chat_id].current_user.bio
-                bot.sendPhoto(job.context, photo=photos[0], caption=name)
-
+                msg = bot.sendPhoto(job.context, photo=photos[0], caption=name)
+                conversation.vote_msg = msg
                 # Prepare voting inline keyboard
                 reply_markup = get_vote_keyboard(chat_id=chat_id)
                 message = get_question_match(conversation=conversation)
                 msg = bot.sendMessage(job.context, text=message, reply_markup=reply_markup)
                 conversation.result_msg = msg
         else:
-            bot.sendMessage(job.context, text="Current vote is not finished yet.")
+            bot.sendMessage(job.context, text="Current vote is not finished yet.",
+                            reply_to_message_id=conversation.vote_msg.message_id)
     else:
-        bot.sendMessage(job.context, text="Chat not registered yet, please add token.")
+        send_account_not_setup(bot=bot, chat_id=chat_id)
 
 
 def get_vote_keyboard(chat_id):
@@ -245,7 +247,7 @@ def send_more_photos(private_chat_id, group_chat_id, bot):
             message = "There is not vote going on right now."
             bot.sendMessage(private_chat_id, text=message)
     else:
-        bot.sendMessage(group_chat_id, text="Chat not registered yet, please add token.")
+        send_account_not_setup(bot=bot, chat_id=group_chat_id)
 """
 def send_bio(private_chat_id, group_chat_id, bot):
     global conversations
@@ -309,6 +311,10 @@ def message_handler(bot, update):
     # Ignore reply to the bot in groups
     elif update.message.chat.type != "group":
         update.message.reply_text("I'm sorry Dave I'm afraid I can't do that.")
+
+
+def send_account_not_setup(bot, chat_id):
+    bot.sendMessage(chat_id, text="Chat not registered yet, please add token.")
 
 
 def main():

@@ -143,23 +143,32 @@ def start_vote(bot, job):
         if not conversation.is_voting:
             conversation.set_is_voting(True)
             # Fetch nearby users
-            while len(conversation.users) == 0:
+            retry = 0
+            while retry < 3 and len(conversation.users) == 0:
                 conversation.refresh_users()
-            conversation.current_user = conversation.users[0]
-            del conversation.users[0]
-            # Reinit votes
-            conversation.current_votes = {}
-            photos = conversation.current_user.get_photos(width='320')
-            name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
-            if len(conversation.current_user.bio) > 0:
-                name += "\n" + conversations[chat_id].current_user.bio
-            bot.sendPhoto(job.context, photo=photos[0], caption=name)
+                retry +=1
+            # Check if there are still user in the queue
+            if len(conversation.users) == 0:
+                bot.sendMessage(job.context, text="There are no other users available.")
+            else:
+                # Assign user
+                conversation.current_user = conversation.users[0]
+                del conversation.users[0]
+                # Reinit votes
+                conversation.current_votes = {}
+                # Retrieve photos
+                photos = conversation.current_user.get_photos(width='320')
+                name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
+                # Append bio to caption if it's not empty
+                if len(conversation.current_user.bio) > 0:
+                    name += "\n" + conversations[chat_id].current_user.bio
+                bot.sendPhoto(job.context, photo=photos[0], caption=name)
 
-            # Prepare voting inline keyboard
-            reply_markup = get_vote_keyboard(chat_id=chat_id)
-            message = get_question_match(conversation=conversation)
-            msg = bot.sendMessage(job.context, text=message, reply_markup=reply_markup)
-            conversation.result_msg = msg
+                # Prepare voting inline keyboard
+                reply_markup = get_vote_keyboard(chat_id=chat_id)
+                message = get_question_match(conversation=conversation)
+                msg = bot.sendMessage(job.context, text=message, reply_markup=reply_markup)
+                conversation.result_msg = msg
         else:
             bot.sendMessage(job.context, text="Current vote is not finished yet.")
     else:

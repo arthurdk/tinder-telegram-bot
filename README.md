@@ -14,6 +14,8 @@ An instance of the bot is available on Telegram, but it's hosted on a small mach
 
 [Start a private conversation with the bot](https://telegram.me/tindergroupbot?start=yes )
 
+## Screenshots
+
 ## Usage
 
 If you join a group where a bot is active, remember to start a conversation with the bot in order to let it send you private message.
@@ -57,8 +59,6 @@ Note: This was tested by not having the Facebook application on the phone but it
 * Go to the sniffer again, stop the sniffing
 * Look for the Tinder /auth request and more precisely for the facebook_token parameter, that's it you are done.
 
-
-## Screenshots
 
 ## Installation
 

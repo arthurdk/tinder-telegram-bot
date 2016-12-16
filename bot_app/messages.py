@@ -11,7 +11,7 @@ help_messages["set_setting"] = "Usage of /set_setting:\n/set_setting <setting> <
 help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
                         "_Logging in with your Tinder account:_\n" \
-                        "1. Use /set_account <facebook-id>\n" \
+                        "1. Use /set_account\n" \
                         "2. The bot will ask you for your facebook token. Just send it plain.\n" \
                         "\n" \
                         "_Searching for matches:_\n" \

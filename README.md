@@ -6,6 +6,7 @@ The bot is working both in a group conversation and in private conversation, the
 ## Rules
 
 * A tie equals to a dislike
+
 ## Online demo
 
 An instance of the bot is available on Telegram, but it's hosted on a small machine so it may be highly unavailable if lot of people are using it.
@@ -69,6 +70,7 @@ Simply write your bot api key in the dedicated environment variable and launch t
 docker run -d -e BOT_KEY="YOUR_BOT_API_KEY" --restart=always --name tinder-bot arthurdk/tinder-telegram-bot:dev
 ```
 
+More info available on [this bot Docker Hub repository](https://hub.docker.com/r/arthurdk/tinder-telegram-bot/)
 
 ### Docker (build)
 

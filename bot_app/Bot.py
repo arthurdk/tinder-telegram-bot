@@ -90,7 +90,7 @@ def set_timeout(bot, update, args):
     chat_id = update.message.chat_id
     if chat_id in conversations:
         if len(args) != 1:
-            message = "You need to send the time in second along with the the command"
+            message = "You need to send the time in second along with the command"
         else:
             try:
                 conversations[chat_id].timeout = int(args[0])

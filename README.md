@@ -2,8 +2,14 @@
 Unofficial Telegram bot for choosing the perfect Tinder match with your mates (or alone).
 
 
-
 ## Installation
+
+### Docker (from DockerHub)
+
+Simply write your bot api key in the dedicated environment variable and launch the container:
+```
+docker run -d -e BOT_KEY="YOUR_BOT_API_KEY" --restart=always --name tinder-bot arthurdk/tinder-telegram-bot:dev
+```
 
 
 ### Docker (build)
@@ -25,7 +31,9 @@ Finally, write your bot api key in the dedicated environment variable and launch
 docker run -d -e BOT_KEY="YOUR_BOT_API_KEY" --restart=always --name tinder-bot <your-repo-name>/tinder-telegram-bot:dev
 ```
 
-### Python
+### Python (Dev)
+
+Note: This was tested on Ubuntu 16.04 based distribution only.
 
 Install Pynder (Tinder client)
 ```

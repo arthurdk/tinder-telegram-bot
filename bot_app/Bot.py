@@ -59,7 +59,7 @@ def set_location(bot, update, args):
     chat_id = update.message.chat_id
     if chat_id in conversations:
         if len(args) != 2:
-            message = "You need to send your location the command (latitude and longitude)"
+            message = "You need to send your location along with the command (latitude and longitude)"
         else:
             try:
                 latitude = args[0]

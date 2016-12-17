@@ -20,10 +20,10 @@ def send_message(bot, update, args):
 
     conversation = data.conversations[chat_id]
     owner = conversation.owner
-    _settings = conversation.settings
+    settings = conversation.settings
     session = conversation.session
 
-    chat_mode = _settings.get_setting("chat_mode")
+    chat_mode = settings.get_setting("chat_mode")
     if chat_mode == "off" or (chat_mode == "owner" and sender != owner):
         send_error(bot, chat_id, "command_not_allowed")
         return
@@ -38,9 +38,9 @@ def send_message(bot, update, args):
         return
 
     try:
-        match_ids = parse_range(bot, chat_id, args[0], _settings.get_setting("max_send_range_size"))
+        match_ids = parse_range(bot, chat_id, args[0], int(settings.get_setting("max_send_range_size")))
     except ValueError:
-        send_help(bot, chat_id, "send_message", "First argument must be an integer")
+        send_help(bot, chat_id, "send_message", "First argument must be an integer range")
         return
 
     matches = session.matches()
@@ -56,11 +56,11 @@ def send_message(bot, update, args):
         destination = get_match(bot, update, match_id, matches)
 
         if destination is not None:
-            send_custom_message(bot, chat_id, poll_last_messages_as_string(destination, 5))
+            send_custom_message(bot, chat_id, poll_last_messages_as_string(destination, match_id, 5))
 
     # Block sending for some time
     ts = time.time()
-    conversation.block_sending_until = ts + float(_settings.get_setting("send_block_time")) * len(match_ids)
+    conversation.block_sending_until = ts + float(settings.get_setting("send_block_time")) * len(match_ids)
 
 
 def inline_preview(bot, update):
@@ -173,8 +173,8 @@ def parse_range(bot, chat_id, range_string, max_size):
     return result
 
 
-def poll_last_messages_as_string(match, n):
-    last_messages = "Messages with " + match.user.name + ":\n"
+def poll_last_messages_as_string(match, id, n):
+    last_messages = "Messages with " + match.user.name + " (" + str(id) + ")" + ":\n"
     has_messages = False
 
     for m in poll_last_messages(match, n):
@@ -230,9 +230,9 @@ def poll_messages(bot, update, args):
         return
 
     try:
-        match_ids = parse_range(bot, chat_id, args[0], settings.get_setting("max_poll_range_size"))
+        match_ids = parse_range(bot, chat_id, args[0], int(settings.get_setting("max_poll_range_size")))
     except ValueError:
-        send_help(bot, chat_id, "poll_messages", "First argument must be an integer")
+        send_help(bot, chat_id, "poll_messages", "First argument must be an integer range")
         return
 
     if len(args) < 2:
@@ -256,7 +256,7 @@ def poll_messages(bot, update, args):
         match = get_match(bot, update, match_id, matches)
 
         if match is not None:
-            send_custom_message(bot, chat_id, poll_last_messages_as_string(match, n))
+            send_custom_message(bot, chat_id, poll_last_messages_as_string(match, match_id, n))
 
     # Block polling for some time
     ts = time.time()

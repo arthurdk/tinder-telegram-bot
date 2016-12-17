@@ -9,11 +9,12 @@ class Settings:
     values["max_poll_range_size"] = Range(1, 100)
     values["max_send_range_size"] = Range(1, 10)
     values["min_votes_before_timeout"] = Range(1, 100) # Arthur it's a static limit now ;)
-    values["min_timeout"] = Range(0, 86400)
-    values["max_timeout"] = Range(0, 86400)
+    values["min_timeout"] = Range(0, 3600)
+    values["max_timeout"] = Range(0, 3600)
     values["send_block_time"] = Range(0, 3600)
     values["poll_block_time"] = Range(0, 3600)
     values["blind_mode"] = FlexibleBoolean(is_value=False)
+    values["matches_cache_time"] = Range(0, 60)
 
     helps = {}
     helps["chat_mode"] = "Different modes for chatting. Off means /msg and /poll_msgs are disabled. " \
@@ -24,7 +25,6 @@ class Settings:
     helps["min_votes_before_timeout"] = "Not implemented."
     helps["min_timeout"] = "The minimum value for the timeout the users can set."
     helps["max_timeout"] = "The maximum value for the timeout the users can set."
-    helps["blind_mode"] = "If turned one, it will hide the vote count"
     helps["send_block_time"] = "The block time after a /msg command. In this time, nobody can send a message. " \
                                "The time is given in seconds and scales linearly with the range size of the /msg " \
                                "command. Example: send_block_time is 5 and we send '/msg 2,4-6 Hey', then the block " \
@@ -33,18 +33,21 @@ class Settings:
                                "The time is given in seconds and scales linearly with the range size of the" \
                                " /poll_msgs command. Example: poll_block_time is 5 and we send '/poll_msgs 2,4-6', " \
                                "then the block time will be 20 seconds."
+    helps["blind_mode"] = "If turned one, it will hide the vote count."
+    helps["matches_cache_time"] = "The time in seconds the matches for the /matches command are cached."
 
     def __init__(self):
         self.settings = {}
         self.settings["chat_mode"] = "off"  # Modes are off, owner and all
-        self.settings["max_poll_range_size"] = 100
-        self.settings["max_send_range_size"] = 1
-        self.settings["min_votes_before_timeout"] = 1
-        self.settings["min_timeout"] = 10
-        self.settings["max_timeout"] = 86400
-        self.settings["send_block_time"] = 10
-        self.settings["poll_block_time"] = 10
+        self.settings["max_poll_range_size"] = "100"
+        self.settings["max_send_range_size"] = "1"
+        self.settings["min_votes_before_timeout"] = "1"
+        self.settings["min_timeout"] = "10"
+        self.settings["max_timeout"] = "86400"
+        self.settings["send_block_time"] = "10"
+        self.settings["poll_block_time"] = "10"
         self.settings["blind_mode"] = FlexibleBoolean("False", is_value=True)
+        self.settings["matches_cache_time"] = "60"
 
     def set_setting(self, setting, value):
         if setting not in self.settings.keys():

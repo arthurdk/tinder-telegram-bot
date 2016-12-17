@@ -13,6 +13,9 @@ import bot_app.chat as chat
 import bot_app.admin as admin
 from bot_app.messages import *
 import bot_app.data as data
+import threading
+import time
+import re
 
 # import peewee as pw
 
@@ -72,7 +75,7 @@ def set_timeout(bot, update, args):
                 timeout = int(args[0])
                 settings = data.conversations[chat_id].settings
 
-                if settings.get_setting("min_timeout") <= timeout and timeout <= settings.get_setting("max_timeout"):
+                if int(settings.get_setting("min_timeout")) <= timeout and timeout <= int(settings.get_setting("max_timeout")):
                     data.conversations[chat_id].timeout = timeout
                     message = "Timeout updated to %d seconds." % data.conversations[chat_id].timeout
                 else:
@@ -107,7 +110,19 @@ def send_matches(bot, update):
     sender_id = update.message.from_user.id
     if chat_id in data.conversations:
         try:
-            matches = data.conversations[chat_id].session.matches()
+            conversation = data.conversations[chat_id]
+
+            # Matches cache
+            conversation.matches_cache_lock.acquire()
+
+            if time.time() - conversation.matches_cache_time > int(conversation.settings.get_setting("matches_cache_time"))\
+                    or conversation.matches_cache is None:
+                conversation.matches_cache_time = time.time()
+                conversation.matches_cache = conversation.session.matches()
+
+            matches = conversation.matches_cache
+            conversation.matches_cache_lock.release()
+
             id = 0
 
             for match in matches:
@@ -128,6 +143,7 @@ def send_matches(bot, update):
         except AttributeError as e:
             message = "An error happened."
             bot.sendMessage(sender_id, text=message)
+            print(e)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
@@ -321,6 +337,9 @@ def message_handler(bot, update):
             conversation.settings = admin.Settings()
             conversation.block_polling_until = 0
             conversation.block_sending_until = 0
+            conversation.matches_cache_lock = threading.Lock()
+            conversation.matches_cache_time = 0
+            conversation.matches_cache = None
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)
@@ -329,11 +348,27 @@ def message_handler(bot, update):
     elif update.message.chat.type != "group":
         update.message.reply_text(error_messages["unknown_command"])
 
-
 def send_about(bot, update):
     chat_id = update.message.chat_id
     message = messages["about"]
     bot.sendMessage(chat_id, text=message)
+
+
+def custom_command_handler(bot, update):
+    # /msg command. Preserves whitespace. Leaves error handling to the chat.send_message method
+    if update.message.text.startswith('/msg'):
+        text = update.message.text[4:].strip()
+        splitter = re.search("\s", text).start()
+        print(splitter)
+
+        if splitter is None:
+            args = [text]
+        else:
+            args = [text[:splitter].strip(), text[splitter:].strip()]
+
+        chat.send_message(bot, update, args)
+    else:
+        unknown(bot, update)
 
 
 def main():
@@ -361,8 +396,8 @@ def main():
     dispatcher.add_handler(CommandHandler('new_vote', start_vote_session, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler('timeout', set_timeout, pass_args=True))
     dispatcher.add_handler(CommandHandler('about', send_about))
+
     # Chat functionality
-    dispatcher.add_handler(CommandHandler('msg', chat.send_message, pass_args=True))
     dispatcher.add_handler(CommandHandler('poll_msgs', chat.poll_messages, pass_args=True))
     dispatcher.add_handler(CommandHandler('unblock', chat.unblock))
 
@@ -372,8 +407,8 @@ def main():
     dispatcher.add_handler(CommandHandler('help_settings', admin.help_settings))
     inline_caps_handler = InlineQueryHandler(chat.inline_preview)
     dispatcher.add_handler(inline_caps_handler)
+    dispatcher.add_handler(MessageHandler(Filters.command, custom_command_handler))
 
-    dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     updater.start_polling()
     updater.idle()
 

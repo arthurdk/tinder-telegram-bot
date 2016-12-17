@@ -56,7 +56,7 @@ def send_message(bot, update, args):
         destination = get_match(bot, update, match_id, matches)
 
         if destination is not None:
-            send_custom_message(bot, chat_id, poll_last_messages_as_string(destination, 5))
+            send_custom_message(bot, chat_id, poll_last_messages_as_string(destination, match_id, 5))
 
     # Block sending for some time
     ts = time.time()
@@ -111,8 +111,8 @@ def parse_range(bot, chat_id, range_string, max_size):
     return result
 
 
-def poll_last_messages_as_string(match, n):
-    last_messages = "Messages with " + match.user.name + ":\n"
+def poll_last_messages_as_string(match, id, n):
+    last_messages = "Messages with " + match.user.name + " (" + str(id) + ")" + ":\n"
     has_messages = False
 
     for m in poll_last_messages(match, n):
@@ -194,7 +194,7 @@ def poll_messages(bot, update, args):
         match = get_match(bot, update, match_id, matches)
 
         if match is not None:
-            send_custom_message(bot, chat_id, poll_last_messages_as_string(match, n))
+            send_custom_message(bot, chat_id, poll_last_messages_as_string(match, match_id, n))
 
     # Block polling for some time
     ts = time.time()

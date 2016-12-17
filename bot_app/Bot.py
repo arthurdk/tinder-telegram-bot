@@ -68,8 +68,16 @@ def set_timeout(bot, update, args):
             message = "You need to send the time in seconds along with the command"
         else:
             try:
-                data.conversations[chat_id].timeout = int(args[0])
-                message = "Timeout updated to %d seconds." % data.conversations[chat_id].timeout
+                timeout = int(args[0])
+                settings = data.conversations[chat_id].settings
+
+                if settings.get_setting("min_timeout") <= timeout and timeout <= settings.get_setting("max_timeout"):
+                    data.conversations[chat_id].timeout = timeout
+                    message = "Timeout updated to %d seconds." % data.conversations[chat_id].timeout
+                else:
+                    send_custom_message(bot, chat_id, "Timeout out of range: "
+                                        + str(settings.get_setting("min_timeout")) + "-"
+                                        + settings.get_setting("max_timeout"))
             except AttributeError:
                 message = "An error happened."
         bot.sendMessage(chat_id, text=message)
@@ -300,6 +308,8 @@ def message_handler(bot, update):
 
             conversation.owner = sender
             conversation.settings = admin.Settings()
+            conversation.block_polling_until = 0
+            conversation.block_sending_until = 0
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)
@@ -337,6 +347,7 @@ def main():
     # Chat functionality
     dispatcher.add_handler(CommandHandler('msg', chat.send_message, pass_args=True))
     dispatcher.add_handler(CommandHandler('poll_msgs', chat.poll_messages, pass_args=True))
+    dispatcher.add_handler(CommandHandler('unblock', chat.unblock))
 
     # Settings
     dispatcher.add_handler(CommandHandler('set_setting', admin.set_setting, pass_args=True))

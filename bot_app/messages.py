@@ -4,7 +4,7 @@ from telegram import ParseMode
 # Help messages for all the bot commands. Use the internal function names as key!
 help_messages = {}
 help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nYou can get the match-id by executing /matches. Supports id ranges."
-help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches. Supports id ranges."
+help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches. Supports id ranges. Second argument can be omitted and defaults to 5."
 help_messages["set_location"] = "Usage of /set_location:\n/set_location <latitude> <longitude>\nYou can also just use telegram to send a location to the group."
 help_messages["set_setting"] = "Usage of /set_setting:\n/set_setting <setting> <value>\nCommand may only be used by account owner."
 
@@ -45,7 +45,7 @@ error_messages = {}
 error_messages["account_not_setup"] = "Chat not registered yet, please add token."
 error_messages["unknown_match_id"] = "Unknown match-id."
 error_messages["command_not_allowed"] = "This command must not be executed by this user."
-error_messages["range_too_large"] = "The given range is too large. Maximum size currently allowed is 100."
+error_messages["range_too_large"] = "The given range is too large."
 
 ### Functions for sending messages to the user ###
 

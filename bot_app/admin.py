@@ -1,19 +1,34 @@
 from bot_app.messages import *
+from bot_app.ranges import *
 import bot_app.data as data
 
 
 class Settings:
     settings = {}
     settings["chat_mode"] = "off" # Modes are off, owner and all
+    settings["max_poll_range_size"] = 100
+    settings["max_send_range_size"] = 1
+    settings["min_votes_before_timeout"] = 1
+    settings["min_timeout"] = 10
+    settings["max_timeout"] = 86400
+    settings["send_block_time"] = 1
+    settings["poll_block_time"] = 1
 
     values = {}
     values["chat_mode"] = ["off", "owner", "all"]
+    values["max_poll_range_size"] = Range(1, 100)
+    values["max_send_range_size"] = Range(1, 10)
+    values["min_votes_before_timeout"] = Range(1, 100) # Arthur it's a static limit now ;)
+    values["min_timeout"] = Range(0, 86400)
+    values["max_timeout"] = Range(0, 86400)
+    values["send_block_time"] = Range(0, 3600)
+    values["poll_block_time"] = Range(0, 3600)
 
     def set_setting(self, setting, value):
         if setting not in self.settings.keys():
             raise Exception("Unknown setting: " + str(setting))
 
-        if value not in self.values[setting]:
+        if value not in self.values[setting] and self.values[setting] is not None:
             return False
 
         self.settings[setting] = value
@@ -37,8 +52,11 @@ def list_settings(bot, update):
     conversation = data.conversations[chat_id]
     message = "Settings:\n"
 
-    for s in conversation.settings.settings.keys():
-        message += s + ": " + str(conversation.settings.settings[s]) + " " + str(conversation.settings.values[s]) + "\n"
+    for s in sorted(conversation.settings.settings.keys()):
+        if conversation.settings.values[s] is None:
+            message += s + ": " + str(conversation.settings.settings[s]) + "\n"
+        else:
+            message += s + ": " + str(conversation.settings.settings[s]) + " " + str(conversation.settings.values[s]) + "\n"
 
     send_custom_message(bot, chat_id, message)
 

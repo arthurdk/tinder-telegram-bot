@@ -18,9 +18,19 @@ def send_message(bot, update, args):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
         return
 
-    chat_mode = data.conversations[chat_id].settings.get_setting("chat_mode")
-    if  chat_mode == "off" or (chat_mode == "owner" and sender != data.conversations[chat_id].owner):
+    conversation = data.conversations[chat_id]
+    owner = conversation.owner
+    settings = conversation.settings
+    session = conversation.session
+
+    chat_mode = settings.get_setting("chat_mode")
+    if  chat_mode == "off" or (chat_mode == "owner" and sender != owner):
         send_error(bot, chat_id, "command_not_allowed")
+        return
+
+    if conversation.block_sending_until > time.time():
+        blocktime = int(conversation.block_sending_until - time.time())
+        send_custom_message(bot, chat_id, "Sending is blocked for " + str(blocktime) + " more seconds.")
         return
 
     if len(args) < 2:
@@ -28,25 +38,29 @@ def send_message(bot, update, args):
         return
 
     try:
-        match_ids = parse_range(bot, chat_id, args[0])
+        match_ids = parse_range(bot, chat_id, args[0], settings.get_setting("max_send_range_size"))
     except ValueError:
         send_help(bot, chat_id, "send_message", "First argument must be an integer")
         return
 
-    matches = data.conversations[chat_id].session.matches()
+    matches = session.matches()
     message = " ".join(args[1:])
 
     for match_id in match_ids:
         destination = get_match(bot, update, match_id, matches)
         destination.message(message)
 
-    matches = data.conversations[chat_id].session.matches()
+    matches = session.matches()
 
     for match_id in match_ids:
         destination = get_match(bot, update, match_id, matches)
 
         if destination is not None:
             send_custom_message(bot, chat_id, poll_last_messages_as_string(destination, 5))
+
+    # Block sending for some time
+    ts = time.time()
+    conversation.block_sending_until = ts + float(settings.get_setting("send_block_time")) * len(match_ids)
 
 
 def poll_last_messages(match, n):
@@ -66,12 +80,12 @@ def get_match(bot, update, id, matches=None):
 
     return matches[id]
 
-def parse_range(bot, chat_id, range_string):
+def parse_range(bot, chat_id, range_string, max_size):
     ranges = range_string.split(',')
     result = []
 
     for r in ranges:
-        if len(result) > 100:
+        if len(result) > max_size:
             send_error(bot, chat_id, "range_too_large")
             return []
 
@@ -85,7 +99,7 @@ def parse_range(bot, chat_id, range_string):
                 send_error(bot, chat_id, "unknown_match_id")
                 return []
 
-            if b - a > 100:
+            if b - a > max_size:
                 send_error(bot, chat_id, "range_too_large")
                 return []
 
@@ -135,26 +149,37 @@ def poll_messages(bot, update, args):
         send_error(bot, chat_id, "account_not_setup")
         return
 
-    chat_mode = data.conversations[chat_id].settings.get_setting("chat_mode")
+    conversation = data.conversations[chat_id]
+    settings = conversation.settings
+
+    chat_mode = settings.get_setting("chat_mode")
     if chat_mode == "off":
         send_error(bot, chat_id, "command_not_allowed")
         return
 
-    if len(args) < 2:
+    if conversation.block_polling_until > time.time():
+        blocktime = int(conversation.block_polling_until - time.time())
+        send_custom_message(bot, chat_id, "Polling is blocked for " + str(blocktime) + " more seconds.")
+        return
+
+    if len(args) < 1:
         send_help(bot, chat_id, "poll_messages", "Not enough arguments given")
         return
 
     try:
-        match_ids = parse_range(bot, chat_id, args[0])
+        match_ids = parse_range(bot, chat_id, args[0], settings.get_setting("max_poll_range_size"))
     except ValueError:
         send_help(bot, chat_id, "poll_messages", "First argument must be an integer")
         return
 
-    try:
-        n = int(args[1])
-    except ValueError:
-        send_help(bot, chat_id, "poll_messages", "Second argument must be an integer")
-        return
+    if len(args) < 2:
+        n = 5
+    else:
+        try:
+            n = int(args[1])
+        except ValueError:
+            send_help(bot, chat_id, "poll_messages", "Second argument must be an integer")
+            return
 
     if n < 1:
         send_help(bot, chat_id, "poll_messages", "<n> must be greater than zero!")
@@ -163,9 +188,27 @@ def poll_messages(bot, update, args):
     if n > 100:
         send_help(bot, chat_id, "poll_messages", "<n> must be smaller than a hundred.")
 
-    matches = data.conversations[chat_id].session.matches()
+    matches = conversation.session.matches()
     for match_id in match_ids:
         match = get_match(bot, update, match_id, matches)
 
         if match is not None:
             send_custom_message(bot, chat_id, poll_last_messages_as_string(match, n))
+
+    # Block polling for some time
+    ts = time.time()
+    conversation.block_polling_until = ts + float(settings.get_setting("poll_block_time")) * len(match_ids)
+
+def unblock(bot, update):
+    global data
+    chat_id = update.message.chat_id
+    conversation = data.conversations[chat_id]
+    owner = conversation.owner
+    sender = update.message.from_user.id
+
+    if sender != owner:
+        send_error(bot, chat_id, "command_not_allowed")
+        return
+
+    conversation.block_polling_until = 0
+    conversation.block_sending_until = 0

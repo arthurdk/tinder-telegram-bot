@@ -123,8 +123,8 @@ def inline_preview(bot, update):
         cache = conversation.timeout
         if cache > 0:
             cache -= 1
-    # next_offset=last_idx
-    bot.answerInlineQuery(update.inline_query.id, results, cache_time=cache)
+
+    bot.answerInlineQuery(update.inline_query.id, results, cache_time=cache, next_offset=last_idx)
 
 
 def poll_last_messages(match, n):

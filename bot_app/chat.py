@@ -119,10 +119,12 @@ def inline_preview(bot, update):
                                                       thumb_url=thumb,
                                                       photo_url=full))
                 last_idx = idx + 1
-                break
-        cache = conversation.timeout
 
-    bot.answerInlineQuery(update.inline_query.id, results, cache_time=cache, next_offset=last_idx)
+        cache = conversation.timeout
+        if cache > 0:
+            cache -= 1
+    # next_offset=last_idx
+    bot.answerInlineQuery(update.inline_query.id, results, cache_time=cache)
 
 
 def poll_last_messages(match, n):

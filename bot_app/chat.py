@@ -228,13 +228,13 @@ def poll_messages(bot, update, args, only_unanswered=False):
         return
 
     if len(args) < 1:
-        send_help(bot, chat_id, "poll_messages", "Not enough arguments given")
+        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "Not enough arguments given")
         return
 
     try:
         match_ids = parse_range(bot, chat_id, args[0], int(settings.get_setting("max_poll_range_size")))
     except ValueError:
-        send_help(bot, chat_id, "poll_messages", "First argument must be an integer range")
+        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "First argument must be an integer range")
         return
 
     if len(args) < 2:
@@ -243,15 +243,15 @@ def poll_messages(bot, update, args, only_unanswered=False):
         try:
             n = int(args[1])
         except ValueError:
-            send_help(bot, chat_id, "poll_messages", "Second argument must be an integer")
+            send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "Second argument must be an integer")
             return
 
     if n < 1:
-        send_help(bot, chat_id, "poll_messages", "<n> must be greater than zero!")
+        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "<n> must be greater than zero!")
         return
 
     if n > 100:
-        send_help(bot, chat_id, "poll_messages", "<n> must be smaller than a hundred.")
+        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "<n> must be smaller than a hundred.")
 
     matches = conversation.session.matches()
     my_id = conversation.session.profile.id

@@ -6,6 +6,7 @@ from telegram import TelegramError
 help_messages = {}
 help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nYou can get the match-id by executing /matches. Supports id ranges."
 help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches. Supports id ranges. Second argument can be omitted and defaults to 5."
+help_messages["poll_unanswered"] = "Usage of /poll_unanswered:\n/poll_unanswered <match-id> <n>\nPolls the last n messages from the match. Shows them only if the last message is not from you. You should use it with an id range."
 help_messages["set_location"] = "Usage of /set_location:\n/set_location <latitude> <longitude>\nYou can also just use telegram to send a location to the group."
 help_messages["set_setting"] = "Usage of /set_setting:\n/set_setting <setting> <value>\nCommand may only be used by account owner."
 
@@ -24,7 +25,9 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
                         "_Chatting with matches:_\n" \
                         " * Use /matches to list your matches in your private chat. Every match has an id. It can change if old matches unmatch.\n" \
-                        " * Use /msg to send a message to a match, and /poll_msgs to get the chat history with a match.\n" \
+                        " * Use /msg to send a message to a match. It supports match ranges.\n" \
+                        " * Use /poll_msgs to get the chat history with a match. It supports match ranges.\n" \
+                        " * Use /poll_unanswered to check for unanswered messages. Use it with a range. It returns only unanswered chats.\n" \
                         " * The owner may use /unblock to remove the sending/polling blocade once. See /help_settings for more information.\n" \
                         "\n" \
                         "_Configuration:_\n" \
@@ -34,7 +37,6 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
                         "_Ranges:_\n" \
                         "Ranges are a comma-separated lists of numbers or number pairs. Number pairs are separated by a hyphen. Use no spaces in your range definition.\n" \
-                        "" \
                         "\n" \
                         "_Other:_\n" \
                         " * Use /about to learn more about me."

@@ -4,6 +4,7 @@ import bot_app.data as data
 from bot_app.FlexibleBoolean import FlexibleBoolean
 import bot_app.settings as settings
 
+
 class Settings:
     values = {}
     values["chat_mode"] = ["off", "owner", "all"]

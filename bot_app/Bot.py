@@ -13,6 +13,7 @@ import bot_app.chat as chat
 import bot_app.admin as admin
 from bot_app.messages import *
 import bot_app.data as data
+import bot_app.prediction as prediction
 import threading
 import time
 import re
@@ -150,13 +151,18 @@ def send_matches(bot, update):
 
 def start_vote_session(bot, update, job_queue):
     chat_id = update.message.chat_id
-    job = Job(start_vote, 0, repeat=False, context=chat_id)
+    job = Job(start_vote, 0, repeat=False, context=(chat_id, job_queue))
     job_queue.put(job)
+
+
+def reinit_vote(conversation):
+    conversation.set_is_voting(False)
+    conversation.current_votes = {}
 
 
 def start_vote(bot, job):
     global data
-    chat_id = job.context
+    chat_id, job_queue = job.context
     if chat_id in data.conversations:
         conversation = data.conversations[chat_id]
         if not conversation.is_voting:
@@ -168,29 +174,36 @@ def start_vote(bot, job):
                 retry += 1
             # Check if there are still user in the queue
             if len(conversation.users) == 0:
-                bot.sendMessage(job.context, text="There are no other users available.")
+                bot.sendMessage(chat_id, text="There are no other users available.")
             else:
-
+                reinit_vote(conversation)
                 # Assign user
-                conversation.current_user = conversation.users[0]
-                del conversation.users[0]
-                # Reinit votes
-                conversation.current_votes = {}
-                # Retrieve photos
-                photos = conversation.current_user.get_photos(width='320')
-                name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
-                # Append bio to caption if it's not empty
-                if len(conversation.current_user.bio) > 0:
-                    name += "\n" + data.conversations[chat_id].current_user.bio
-                msg = bot.sendPhoto(job.context, photo=photos[0], caption=name)
-                conversation.vote_msg = msg
-                # Prepare voting inline keyboard
-                reply_markup = get_vote_keyboard(conversation=conversation)
-                message = get_question_match(conversation=conversation)
-                msg = bot.sendMessage(job.context, text=message, reply_markup=reply_markup)
-                conversation.result_msg = msg
+                try:
+                    conversation.current_user = conversation.users[0]
+                    del conversation.users[0]
+
+                    # Retrieve photos
+                    photos = conversation.current_user.get_photos(width='320')
+                    name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
+                    # Append bio to caption if it's not empty
+                    if len(conversation.current_user.bio) > 0:
+                        name += "\n" + data.conversations[chat_id].current_user.bio
+                    msg = bot.sendPhoto(chat_id, photo=photos[0], caption=name)
+                    conversation.vote_msg = msg
+                    # Prepare voting inline keyboard
+                    reply_markup = get_vote_keyboard(conversation=conversation)
+                    message = get_question_match(conversation=conversation)
+                    msg2 = bot.sendMessage(chat_id, text=message, reply_markup=reply_markup)
+                    conversation.result_msg = msg2
+                    # Launch prediction
+                    prediction_job = Job(prediction.do_prediction, 0,
+                                         repeat=False,
+                                         context=(chat_id, conversation.current_user.id, msg.message_id))
+                    job_queue.put(prediction_job)
+                except BaseException as e:
+                    reinit_vote(conversation)
         else:
-            bot.sendMessage(job.context, text="Current vote is not finished yet.",
+            bot.sendMessage(chat_id, text="Current vote is not finished yet.",
                             reply_to_message_id=conversation.vote_msg.message_id)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
@@ -347,6 +360,7 @@ def message_handler(bot, update):
     # Ignore reply to the bot in groups
     elif update.message.chat.type != "group":
         update.message.reply_text(error_messages["unknown_command"])
+
 
 def send_about(bot, update):
     chat_id = update.message.chat_id

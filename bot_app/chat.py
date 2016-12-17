@@ -174,7 +174,7 @@ def parse_range(bot, chat_id, range_string, max_size):
 
 
 def poll_last_messages_as_string(match, id, n):
-    last_messages = "Messages with " + match.user.name + " (" + str(id) + ")" + ":\n"
+    last_messages = "Messages with " + match.user.name + " (ID=" + str(id) + ")" + ":\n"
     has_messages = False
 
     for m in poll_last_messages(match, n):
@@ -198,7 +198,7 @@ def poll_last_messages_as_string(match, id, n):
         last_messages += strdate + " " + m.sender.name + ": " + m.body + "\n"
 
     if not has_messages:
-        last_messages = "No messages found for " + match.user.name
+        last_messages = "No messages found for " + match.user.name + " (ID=" + str(id) + ")"
 
     return last_messages
 

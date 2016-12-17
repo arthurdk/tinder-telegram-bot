@@ -6,5 +6,5 @@ python-dateutil==2.6.0
 python-telegram-bot==5.3.0
 requests==2.12.4
 six==1.10.0
-telegram==0.0.1
+telegram==5.3.0
 urllib3==1.19.1

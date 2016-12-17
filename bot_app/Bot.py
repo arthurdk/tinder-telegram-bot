@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
+from telegram.ext import InlineQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, TelegramError, error
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler, Filters, MessageHandler
 from telegram.ext.dispatcher import run_async
@@ -13,6 +13,7 @@ import bot_app.chat as chat
 import bot_app.admin as admin
 from bot_app.messages import *
 import bot_app.data as data
+
 # import peewee as pw
 
 
@@ -148,7 +149,7 @@ def start_vote(bot, job):
             retry = 0
             while retry < 3 and len(conversation.users) == 0:
                 conversation.refresh_users()
-                retry +=1
+                retry += 1
             # Check if there are still user in the queue
             if len(conversation.users) == 0:
                 bot.sendMessage(job.context, text="There are no other users available.")
@@ -191,7 +192,11 @@ def get_vote_keyboard(conversation):
 
     keyboard = [[InlineKeyboardButton(like_label, callback_data=Vote.LIKE),
                  InlineKeyboardButton("More pictures", callback_data=Vote.MORE),
-                 InlineKeyboardButton(dislike_label, callback_data=Vote.DISLIKE)]]
+                 InlineKeyboardButton(dislike_label, callback_data=Vote.DISLIKE)],
+                [InlineKeyboardButton("Inline pictures",
+                                      switch_inline_query_current_chat="pictures "+str(conversation.group_id)),
+                 InlineKeyboardButton("Matches",
+                                      switch_inline_query_current_chat="matches " + str(conversation.group_id))]]
 
     return InlineKeyboardMarkup(keyboard)
 
@@ -365,9 +370,14 @@ def main():
     dispatcher.add_handler(CommandHandler('set_setting', admin.set_setting, pass_args=True))
     dispatcher.add_handler(CommandHandler('list_settings', admin.list_settings))
     dispatcher.add_handler(CommandHandler('help_settings', admin.help_settings))
+    inline_caps_handler = InlineQueryHandler(chat.inline_preview)
+    dispatcher.add_handler(inline_caps_handler)
+
     dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     updater.start_polling()
     updater.idle()
+
+
 
 
 if __name__ == "__main__":

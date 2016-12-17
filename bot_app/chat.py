@@ -1,5 +1,5 @@
 from telegram.ext.dispatcher import run_async
-
+from telegram import InlineQueryResultPhoto, InlineQueryResultArticle, InputTextMessageContent
 from bot_app.messages import *
 from bot_app.admin import *
 import bot_app.data as data
@@ -20,11 +20,11 @@ def send_message(bot, update, args):
 
     conversation = data.conversations[chat_id]
     owner = conversation.owner
-    settings = conversation.settings
+    _settings = conversation.settings
     session = conversation.session
 
-    chat_mode = settings.get_setting("chat_mode")
-    if  chat_mode == "off" or (chat_mode == "owner" and sender != owner):
+    chat_mode = _settings.get_setting("chat_mode")
+    if chat_mode == "off" or (chat_mode == "owner" and sender != owner):
         send_error(bot, chat_id, "command_not_allowed")
         return
 
@@ -38,7 +38,7 @@ def send_message(bot, update, args):
         return
 
     try:
-        match_ids = parse_range(bot, chat_id, args[0], settings.get_setting("max_send_range_size"))
+        match_ids = parse_range(bot, chat_id, args[0], _settings.get_setting("max_send_range_size"))
     except ValueError:
         send_help(bot, chat_id, "send_message", "First argument must be an integer")
         return
@@ -60,7 +60,69 @@ def send_message(bot, update, args):
 
     # Block sending for some time
     ts = time.time()
-    conversation.block_sending_until = ts + float(settings.get_setting("send_block_time")) * len(match_ids)
+    conversation.block_sending_until = ts + float(_settings.get_setting("send_block_time")) * len(match_ids)
+
+
+def inline_preview(bot, update):
+    global data
+    query = update.inline_query.query
+    # Return on empty query
+    if not query:
+        return
+    if update.inline_query.offset:
+        offset = int(update.inline_query.offset)
+    else:
+        offset = 0
+
+    args = query.split(" ")
+    if len(args) != 2:
+        return
+    mode = args[0]
+    if mode not in ["pictures", "matches"]:
+        return
+
+    chat_id = int(args[1])
+    if chat_id not in data.conversations:
+        return
+
+    conversation = data.conversations[chat_id]
+    session = conversation.session
+
+    results = list()
+    last_idx = 0
+    cache = 60
+    if mode == "matches":
+        matches = session.matches()
+
+        for idx, match in enumerate(matches):
+            if idx >= offset:
+                thumb = match.user.get_photos(width='84')[0]
+                full = match.user.get_photos(width='640')[0]
+
+                results.append(InlineQueryResultPhoto(id=idx, caption=match.user.name, description=match.user.name,
+                                                      photo_height=0,
+                                                      thumb_url=thumb,
+                                                      photo_url=full))
+                last_idx = idx + 1
+    elif mode == "pictures":
+        cur_user = conversation.current_user
+        thumbs = cur_user.get_photos(width='84')
+        fulls = cur_user.get_photos(width='640')
+        for idx, pic in enumerate(thumbs):
+            if idx >= offset:
+                thumb = pic
+                full = fulls[idx]
+
+                results.append(InlineQueryResultPhoto(id=idx, caption="%s %d/%d" % (cur_user.name, idx, len(thumbs)),
+                                                      description=cur_user.name,
+                                                      photo_height=0,
+                                                      thumb_url=thumb,
+                                                      photo_url=full))
+                last_idx = idx + 1
+                break
+        cache = conversation.timeout
+
+    bot.answerInlineQuery(update.inline_query.id, results, cache_time=cache, next_offset=last_idx)
 
 
 def poll_last_messages(match, n):

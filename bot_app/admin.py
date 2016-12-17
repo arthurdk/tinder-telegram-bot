@@ -40,8 +40,8 @@ class Settings:
         self.settings["min_votes_before_timeout"] = 1
         self.settings["min_timeout"] = 10
         self.settings["max_timeout"] = 86400
-        self.settings["send_block_time"] = 1
-        self.settings["poll_block_time"] = 1
+        self.settings["send_block_time"] = 10
+        self.settings["poll_block_time"] = 10
 
     def set_setting(self, setting, value):
         if setting not in self.settings.keys():

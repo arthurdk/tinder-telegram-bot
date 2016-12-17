@@ -24,10 +24,12 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         "_Chatting with matches:_\n" \
                         " * Use /matches to list your matches in your private chat. Every match has an id. It can change if old matches unmatch.\n" \
                         " * Use /msg to send a message to a match, and /poll_msgs to get the chat history with a match.\n" \
+                        " * The owner may use /unblock to remove the sending/polling blocade once. See /help_settings for more information.\n" \
                         "\n" \
                         "_Configuration:_\n" \
                         " * Use /list_settings to list all settings and their values.\n" \
                         " * Use /set_setting to change a setting.This command can only be executed by the account owner.\n" \
+                        " * Use /help_settings to get an explanation of the settings.\n" \
                         "\n" \
                         "_Ranges:_\n" \
                         "Ranges are a comma-separated lists of numbers or number pairs. Number pairs are separated by a hyphen. Use no spaces in your range definition."

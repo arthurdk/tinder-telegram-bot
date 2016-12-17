@@ -352,6 +352,7 @@ def main():
     # Settings
     dispatcher.add_handler(CommandHandler('set_setting', admin.set_setting, pass_args=True))
     dispatcher.add_handler(CommandHandler('list_settings', admin.list_settings))
+    dispatcher.add_handler(CommandHandler('help_settings', admin.help_settings))
 
     updater.start_polling()
     updater.idle()

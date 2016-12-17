@@ -4,16 +4,6 @@ import bot_app.data as data
 
 
 class Settings:
-    settings = {}
-    settings["chat_mode"] = "off" # Modes are off, owner and all
-    settings["max_poll_range_size"] = 100
-    settings["max_send_range_size"] = 1
-    settings["min_votes_before_timeout"] = 1
-    settings["min_timeout"] = 10
-    settings["max_timeout"] = 86400
-    settings["send_block_time"] = 1
-    settings["poll_block_time"] = 1
-
     values = {}
     values["chat_mode"] = ["off", "owner", "all"]
     values["max_poll_range_size"] = Range(1, 100)
@@ -23,6 +13,35 @@ class Settings:
     values["max_timeout"] = Range(0, 86400)
     values["send_block_time"] = Range(0, 3600)
     values["poll_block_time"] = Range(0, 3600)
+
+    helps = {}
+    helps["chat_mode"] = "Different modes for chatting. Off means /msg and /poll_msgs are disabled. " \
+                         "Owner means, only the owner of the currenct account can use /msg, " \
+                         "everybody can use /poll_msgs. All means everybody can /msg and /poll_msgs."
+    helps["max_poll_range_size"] = "Maximum size of a range for the /poll_msgs command."
+    helps["max_send_range_size"] = "Maximum size of a range for the /msg command."
+    helps["min_votes_before_timeout"] = "Not implemented."
+    helps["min_timeout"] = "The minimum value for the timeout the users can set."
+    helps["max_timeout"] = "The maximum value for the timeout the users can set."
+    helps["send_block_time"] = "The block time after a /msg command. In this time, nobody can send a message. " \
+                               "The time is given in seconds and scales linearly with the range size of the /msg " \
+                               "command. Example: send_block_time is 5 and we send '/msg 2,4-6 Hey', then the block " \
+                               "time will be 20 seconds."
+    helps["poll_block_time"] = "The block time after a /poll_msgs command. In this time, nobody can poll messages. " \
+                               "The time is given in seconds and scales linearly with the range size of the" \
+                               " /poll_msgs command. Example: poll_block_time is 5 and we send '/poll_msgs 2,4-6', " \
+                               "then the block time will be 20 seconds."
+
+    def __init__(self):
+        self.settings = {}
+        self.settings["chat_mode"] = "off"  # Modes are off, owner and all
+        self.settings["max_poll_range_size"] = 100
+        self.settings["max_send_range_size"] = 1
+        self.settings["min_votes_before_timeout"] = 1
+        self.settings["min_timeout"] = 10
+        self.settings["max_timeout"] = 86400
+        self.settings["send_block_time"] = 1
+        self.settings["poll_block_time"] = 1
 
     def set_setting(self, setting, value):
         if setting not in self.settings.keys():
@@ -39,6 +58,7 @@ class Settings:
             raise Exception("Unknown setting: " + str(setting))
 
         return self.settings[setting]
+
 
 def list_settings(bot, update):
     global data
@@ -59,6 +79,24 @@ def list_settings(bot, update):
             message += s + ": " + str(conversation.settings.settings[s]) + " " + str(conversation.settings.values[s]) + "\n"
 
     send_custom_message(bot, chat_id, message)
+
+
+def help_settings(bot, update):
+    global data
+
+    chat_id = update.message.chat_id
+
+    message = "Settings:\n"
+    for s in sorted(Settings.helps.keys()):
+        message += " * " + s
+
+        if Settings.values[s] is None:
+            message += ": " + Settings.helps[s] + "\n"
+        else:
+            message += " " + str(Settings.values[s]) + ": " + Settings.helps[s] + "\n"
+
+    send_custom_message(bot, chat_id, message)
+
 
 def set_setting(bot, update, args):
     global data

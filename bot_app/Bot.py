@@ -13,6 +13,8 @@ import bot_app.chat as chat
 import bot_app.admin as admin
 from bot_app.messages import *
 import bot_app.data as data
+import threading
+import time
 # import peewee as pw
 
 
@@ -106,7 +108,19 @@ def send_matches(bot, update):
     sender_id = update.message.from_user.id
     if chat_id in data.conversations:
         try:
-            matches = data.conversations[chat_id].session.matches()
+            conversation = data.conversations[chat_id]
+
+            # Matches cache
+            conversation.matches_cache_lock.acquire()
+
+            if time.time() - conversation.matches_cache_time > int(conversation.settings.get_setting("matches_cache_time"))\
+                    or conversation.matches_cache is None:
+                conversation.matches_cache_time = time.time()
+                conversation.matches_cache = conversation.session.matches()
+
+            matches = conversation.matches_cache
+            conversation.matches_cache_lock.release()
+
             id = 0
 
             for match in matches:
@@ -127,6 +141,7 @@ def send_matches(bot, update):
         except AttributeError as e:
             message = "An error happened."
             bot.sendMessage(sender_id, text=message)
+            print(e)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
@@ -316,6 +331,9 @@ def message_handler(bot, update):
             conversation.settings = admin.Settings()
             conversation.block_polling_until = 0
             conversation.block_sending_until = 0
+            conversation.matches_cache_lock = threading.Lock()
+            conversation.matches_cache_time = 0
+            conversation.matches_cache = None
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)

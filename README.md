@@ -163,6 +163,9 @@ msg - Send a message to a match
 poll_msgs - Read messages for a specific conversation
 list_settings - List all settings and their values.
 set_setting - Change a setting. If an account is set, this command can only be executed by the account owner.
+help_settings - Display help for settings
+unblock - Remove the sending/polling blocade once
+about - Learn more about the bot
 ```
 
 And do not forget to delete your bot from the conversation and add it again.

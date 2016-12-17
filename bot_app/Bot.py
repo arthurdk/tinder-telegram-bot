@@ -112,7 +112,14 @@ def send_matches(bot, update):
             for match in matches:
                 photo = match.user.get_photos(width='172')[0]
                 try:
-                    bot.sendPhoto(chat_id=sender_id, photo=photo, caption=match.user.name + " ID=" + str(id))
+                    is_msg_sent = send_private_photo(bot=bot, caption=match.user.name + " ID=" + str(id), url=photo,
+                                                     user_id=sender_id)
+
+                    if not is_msg_sent:
+                        notify_start_private_chat(bot=bot,
+                                                  chat_id=chat_id,
+                                                  incoming_message_id=update.message.message_id)
+                        break
                     id += 1
                 except error.BadRequest:
                     bot.sendMessage(sender_id, text="One match could not be loaded: %s" % photo)

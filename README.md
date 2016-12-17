@@ -91,6 +91,7 @@ Note: This was tested by not having the Facebook application on the phone but it
 First get your Bot Api Key from the [BotFather](https://core.telegram.org/bots#3-how-do-i-create-a-bot).
 
 ### Docker (from DockerHub)
+Note: Vote data is stored under /votes.
 
 Simply write your bot api key in the dedicated environment variable and launch the container:
 ```
@@ -136,10 +137,25 @@ pip3 install -r requirements.txt
 
 Create file containing the bot api key.
 ```
-cat > bot_app/settings.py << EOL
-KEY = "YOUR_KEY_HERE"
+cat > settings.py << EOL
+from bot_app.prediction import *
+KEY = "$BOT_KEY"
 DB_NAME = 'tinderbot.sqlite3'
 DEBUG_MODE = False
+
+chat_mode_default = "all"  # Modes are off, owner and all
+max_poll_range_size_default = "100"
+max_send_range_size_default = "10"
+min_votes_before_timeout_default = "1"
+min_timeout_default = "10"
+max_timeout_default = "600"
+send_block_time_default = "10"
+poll_block_time_default = "10"
+#blind_mode_default = FlexibleBoolean("False", is_value=True)
+matches_cache_time_default = "60"
+prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
+
+data_retrieval_path = "/votes/"
 EOL
 ```
 

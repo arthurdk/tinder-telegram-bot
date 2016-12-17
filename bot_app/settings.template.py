@@ -1,3 +1,5 @@
+from bot_app.prediction import LoveByHuguesVerlin
+
 KEY = "KEY"
 DB_NAME = 'tinderbot.sqlite3'
 DEBUG_MODE = False
@@ -12,3 +14,7 @@ send_block_time_default = "10"
 poll_block_time_default = "10"
 #blind_mode_default = FlexibleBoolean("False", is_value=True)
 matches_cache_time_default = "60"
+
+prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
+
+data_retrieval_path = "./"

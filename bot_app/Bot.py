@@ -14,6 +14,7 @@ import bot_app.admin as admin
 from bot_app.messages import *
 import bot_app.data as data
 import bot_app.prediction as prediction
+import bot_app.data_retrieval as data_retrieval
 import threading
 import time
 import re
@@ -155,11 +156,6 @@ def start_vote_session(bot, update, job_queue):
     job_queue.put(job)
 
 
-def reinit_vote(conversation):
-    conversation.set_is_voting(False)
-    conversation.current_votes = {}
-
-
 def start_vote(bot, job):
     global data
     chat_id, job_queue = job.context
@@ -176,7 +172,7 @@ def start_vote(bot, job):
             if len(conversation.users) == 0:
                 bot.sendMessage(chat_id, text="There are no other users available.")
             else:
-                reinit_vote(conversation)
+                conversation.current_votes = {}
                 # Assign user
                 try:
                     conversation.current_user = conversation.users[0]
@@ -201,7 +197,7 @@ def start_vote(bot, job):
                                          context=(chat_id, conversation.current_user.id, msg.message_id))
                     job_queue.put(prediction_job)
                 except BaseException as e:
-                    reinit_vote(conversation)
+                    conversation.set_is_voting(False)
         else:
             bot.sendMessage(chat_id, text="Current vote is not finished yet.",
                             reply_to_message_id=conversation.vote_msg.message_id)
@@ -315,13 +311,20 @@ def alarm_vote(bot, chat_id, job_queue):
     likes, dislikes = conversation.get_stats()
     message = "%d likes, %d dislikes " % (likes, dislikes)
     bot.editMessageText(chat_id=msg.chat_id, message_id=msg.message_id, text=message)
-    conversation.set_is_voting(False)
-    conversation.is_alarm_set = False
+
     if likes > dislikes:
+        result = True
         conversation.current_user.like()
     else:
+        result = False
         conversation.current_user.dislike()
 
+    data_retrieval.do_store_vote(user_id=conversation.current_user.id,
+                                 chat_id=chat_id,
+                                 is_like=result)
+
+    conversation.set_is_voting(False)
+    conversation.is_alarm_set = False
     if conversation.auto:
         job = Job(start_vote, 0, repeat=False, context=(chat_id, job_queue))
         job_queue.put(job)

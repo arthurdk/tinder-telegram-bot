@@ -206,7 +206,7 @@ def poll_last_messages_as_string(match, id, n):
 
 
 @run_async
-def poll_messages(bot, update, args):
+def poll_messages(bot, update, args, only_unanswered=False):
     global data
     chat_id = update.message.chat_id
 
@@ -254,15 +254,30 @@ def poll_messages(bot, update, args):
         send_help(bot, chat_id, "poll_messages", "<n> must be smaller than a hundred.")
 
     matches = conversation.session.matches()
+    my_id = conversation.session.profile.id
+
     for match_id in match_ids:
         match = get_match(bot, update, match_id, matches)
 
         if match is not None:
-            send_custom_message(bot, chat_id, poll_last_messages_as_string(match, match_id, n))
+            if not only_unanswered or has_unanswered_messages(my_id, match):
+                send_custom_message(bot, chat_id, poll_last_messages_as_string(match, match_id, n))
 
     # Block polling for some time
     ts = time.time()
     conversation.block_polling_until = ts + float(settings.get_setting("poll_block_time")) * len(match_ids)
+
+
+def has_unanswered_messages(my_id, match):
+    if len(match.messages) == 0:
+        return False
+
+    sender_id = match.messages[-1].sender.id
+    return my_id != sender_id
+
+
+def poll_unanswered_messages(bot, update, args):
+    poll_messages(bot, update, args, True)
 
 
 def unblock(bot, update):

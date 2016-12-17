@@ -49,20 +49,26 @@ messages["setting_updated"] = "Setting updated."
 messages["about"] = "https://github.com/arthurdk/tinder-telegram-bot"
 messages["start_chat"] = "Please start a private conversation with me first. Follow the link: %s"
 messages["send_token"] = "Please send me your authentication token in our private conversation %s "
-
+messages["vote_question"] = "So what do you think of %s? (%d votes)"
 # Error messages
 error_messages = {}
 error_messages["account_not_setup"] = "Chat not registered yet, please add token."
 error_messages["unknown_match_id"] = "Unknown match-id."
 error_messages["command_not_allowed"] = "This command must not be executed by this user."
 error_messages["range_too_large"] = "The given range is too large."
-
+error_messages["unknown_command"] = "I'm sorry Dave I'm afraid I can't do that."
 ### Functions for sending messages to the user ###
 
 
 def debug(bot, chat_id, message):
     if settings.DEBUG_MODE:
         bot.sendMessage(chat_id, text=message)
+
+
+def get_question_match(conversation):
+    name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
+    question = messages["vote_question"] % (name, len(conversation.get_votes()))
+    return question
 
 
 def send_help(bot, chat_id, command, error=""):
@@ -140,6 +146,10 @@ def send_error(bot, chat_id, name):
         raise Exception('Unknown error messages: ' + name)
 
     bot.sendMessage(chat_id, text=error_messages[name])
+
+
+def unknown(bot, update):
+    send_message(bot=bot, chat_id=update.message.chat_id, name=error_messages["unknown_command"])
 
 
 def send_custom_message(bot, chat_id, message):

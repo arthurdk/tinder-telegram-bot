@@ -137,12 +137,6 @@ def start_vote_session(bot, update, job_queue):
     job_queue.put(job)
 
 
-def get_question_match(conversation):
-    name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
-    question = "So what do you think of %s? (%d votes)" % (name, len(conversation.get_votes()))
-    return question
-
-
 def start_vote(bot, job):
     global data
     chat_id = job.context
@@ -328,7 +322,7 @@ def message_handler(bot, update):
 
     # Ignore reply to the bot in groups
     elif update.message.chat.type != "group":
-        update.message.reply_text("I'm sorry Dave I'm afraid I can't do that.")
+        update.message.reply_text(error_messages["unknown_command"])
 
 
 def send_about(bot, update):
@@ -371,7 +365,7 @@ def main():
     dispatcher.add_handler(CommandHandler('set_setting', admin.set_setting, pass_args=True))
     dispatcher.add_handler(CommandHandler('list_settings', admin.list_settings))
     dispatcher.add_handler(CommandHandler('help_settings', admin.help_settings))
-
+    dispatcher.add_handler(MessageHandler(Filters.command, unknown))
     updater.start_polling()
     updater.idle()
 

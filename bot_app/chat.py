@@ -37,14 +37,22 @@ def send_message(bot, update, args):
         send_help(bot, chat_id, "send_message")
         return
 
+    max_range_size = int(settings.get_setting("max_send_range_size"))
+
     try:
-        match_ids = parse_range(bot, chat_id, args[0], int(settings.get_setting("max_send_range_size")))
+        if args[0].lower() == "last":
+            match_ids = None
+        else:
+            match_ids = parse_range(bot, chat_id, args[0], max_range_size)
     except ValueError:
-        send_help(bot, chat_id, "send_message", "First argument must be an integer range")
+        send_help(bot, chat_id, "send_message", "First argument must be an integer range or 'last'.")
         return
 
     matches = session.matches()
     message = " ".join(args[1:])
+
+    if match_ids is None:
+        match_ids = range(max(0, len(matches) - max_range_size), len(matches))
 
     for match_id in match_ids:
         destination = get_match(bot, update, match_id, matches)
@@ -229,15 +237,16 @@ def poll_messages(bot, update, args, only_unanswered=False):
         send_custom_message(bot, chat_id, "Polling is blocked for " + str(blocktime) + " more seconds.")
         return
 
-    if len(args) < 1:
-        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "Not enough arguments given")
-        return
+    max_range_size = int(settings.get_setting("max_poll_range_size"))
+    match_ids = None
 
-    try:
-        match_ids = parse_range(bot, chat_id, args[0], int(settings.get_setting("max_poll_range_size")))
-    except ValueError:
-        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "First argument must be an integer range")
-        return
+    if len(args) > 0:
+        if args[0].lower() != "last":
+            try:
+                match_ids = parse_range(bot, chat_id, args[0], max_range_size)
+            except ValueError:
+                send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "First argument must be an integer range or 'last'")
+                return
 
     if len(args) < 2:
         n = 5
@@ -258,6 +267,9 @@ def poll_messages(bot, update, args, only_unanswered=False):
     matches = conversation.session.matches()
     my_id = conversation.session.profile.id
     messages_shown = 0
+
+    if match_ids is None:
+        match_ids = range(max(0, len(matches) - max_range_size), len(matches))
 
     for match_id in match_ids:
         match = get_match(bot, update, match_id, matches)
@@ -297,3 +309,5 @@ def unblock(bot, update):
 
     conversation.block_polling_until = 0
     conversation.block_sending_until = 0
+
+    send_message(bot, chat_id, 'unblocking_successful')

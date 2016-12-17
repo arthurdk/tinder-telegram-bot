@@ -51,16 +51,18 @@ def send_message(bot, update, args):
         destination.message(message)
 
     matches = session.matches()
+    messages_shown = 0
 
     for match_id in match_ids:
         destination = get_match(bot, update, match_id, matches)
 
         if destination is not None:
             send_custom_message(bot, chat_id, poll_last_messages_as_string(destination, match_id, 5))
+            messages_shown += 1
 
     # Block sending for some time
     ts = time.time()
-    conversation.block_sending_until = ts + float(settings.get_setting("send_block_time")) * len(match_ids)
+    conversation.block_sending_until = ts + float(settings.get_setting("send_block_time")) * messages_shown
 
 
 def inline_preview(bot, update):
@@ -255,6 +257,7 @@ def poll_messages(bot, update, args, only_unanswered=False):
 
     matches = conversation.session.matches()
     my_id = conversation.session.profile.id
+    messages_shown = 0
 
     for match_id in match_ids:
         match = get_match(bot, update, match_id, matches)
@@ -262,10 +265,11 @@ def poll_messages(bot, update, args, only_unanswered=False):
         if match is not None:
             if not only_unanswered or has_unanswered_messages(my_id, match):
                 send_custom_message(bot, chat_id, poll_last_messages_as_string(match, match_id, n))
+                messages_shown += 1
 
     # Block polling for some time
     ts = time.time()
-    conversation.block_polling_until = ts + float(settings.get_setting("poll_block_time")) * len(match_ids)
+    conversation.block_polling_until = ts + float(settings.get_setting("poll_block_time")) * messages_shown
 
 
 def has_unanswered_messages(my_id, match):

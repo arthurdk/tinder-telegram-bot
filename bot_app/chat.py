@@ -38,9 +38,9 @@ def send_message(bot, update, args):
         return
 
     try:
-        match_ids = parse_range(bot, chat_id, args[0], settings.get_setting("max_send_range_size"))
+        match_ids = parse_range(bot, chat_id, args[0], int(settings.get_setting("max_send_range_size")))
     except ValueError:
-        send_help(bot, chat_id, "send_message", "First argument must be an integer")
+        send_help(bot, chat_id, "send_message", "First argument must be an integer range")
         return
 
     matches = session.matches()
@@ -168,9 +168,9 @@ def poll_messages(bot, update, args):
         return
 
     try:
-        match_ids = parse_range(bot, chat_id, args[0], settings.get_setting("max_poll_range_size"))
+        match_ids = parse_range(bot, chat_id, args[0], int(settings.get_setting("max_poll_range_size")))
     except ValueError:
-        send_help(bot, chat_id, "poll_messages", "First argument must be an integer")
+        send_help(bot, chat_id, "poll_messages", "First argument must be an integer range")
         return
 
     if len(args) < 2:

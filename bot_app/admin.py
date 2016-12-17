@@ -37,13 +37,13 @@ class Settings:
     def __init__(self):
         self.settings = {}
         self.settings["chat_mode"] = "off"  # Modes are off, owner and all
-        self.settings["max_poll_range_size"] = 100
-        self.settings["max_send_range_size"] = 1
-        self.settings["min_votes_before_timeout"] = 1
-        self.settings["min_timeout"] = 10
-        self.settings["max_timeout"] = 86400
-        self.settings["send_block_time"] = 10
-        self.settings["poll_block_time"] = 10
+        self.settings["max_poll_range_size"] = "100"
+        self.settings["max_send_range_size"] = "1"
+        self.settings["min_votes_before_timeout"] = "1"
+        self.settings["min_timeout"] = "10"
+        self.settings["max_timeout"] = "86400"
+        self.settings["send_block_time"] = "10"
+        self.settings["poll_block_time"] = "10"
         self.settings["blind_mode"] = FlexibleBoolean("False", is_value=True)
 
     def set_setting(self, setting, value):

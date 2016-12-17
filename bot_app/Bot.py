@@ -15,6 +15,7 @@ from bot_app.messages import *
 import bot_app.data as data
 import threading
 import time
+import re
 # import peewee as pw
 
 
@@ -343,10 +344,28 @@ def message_handler(bot, update):
         update.message.reply_text(error_messages["unknown_command"])
 
 
+
+
 def send_about(bot, update):
     chat_id = update.message.chat_id
     message = messages["about"]
     bot.sendMessage(chat_id, text=message)
+
+def custom_command_handler(bot, update):
+    # /msg command. Preserves whitespace. Leaves error handling to the chat.send_message method
+    if update.message.text.startswith('/msg'):
+        text = update.message.text[4:].strip()
+        splitter = re.search("\s", text).start()
+        print(splitter)
+
+        if splitter is None:
+            args = [text]
+        else:
+            args = [text[:splitter].strip(), text[splitter:].strip()]
+
+        chat.send_message(bot, update, args)
+    else:
+        unknown(bot, update)
 
 
 def main():
@@ -376,7 +395,6 @@ def main():
     dispatcher.add_handler(CommandHandler('about', send_about))
 
     # Chat functionality
-    dispatcher.add_handler(CommandHandler('msg', chat.send_message, pass_args=True))
     dispatcher.add_handler(CommandHandler('poll_msgs', chat.poll_messages, pass_args=True))
     dispatcher.add_handler(CommandHandler('unblock', chat.unblock))
 
@@ -384,7 +402,7 @@ def main():
     dispatcher.add_handler(CommandHandler('set_setting', admin.set_setting, pass_args=True))
     dispatcher.add_handler(CommandHandler('list_settings', admin.list_settings))
     dispatcher.add_handler(CommandHandler('help_settings', admin.help_settings))
-    dispatcher.add_handler(MessageHandler(Filters.command, unknown))
+    dispatcher.add_handler(MessageHandler(Filters.command, custom_command_handler))
     updater.start_polling()
     updater.idle()
 

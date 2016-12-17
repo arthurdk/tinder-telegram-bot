@@ -323,7 +323,7 @@ def alarm_vote(bot, chat_id, job_queue):
         conversation.current_user.dislike()
 
     if conversation.auto:
-        job = Job(start_vote, 0, repeat=False, context=chat_id)
+        job = Job(start_vote, 0, repeat=False, context=(chat_id, job_queue))
         job_queue.put(job)
 
 

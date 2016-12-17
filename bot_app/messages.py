@@ -1,5 +1,6 @@
 import bot_app.settings as settings
 from telegram import ParseMode
+from telegram import TelegramError
 
 # Help messages for all the bot commands. Use the internal function names as key!
 help_messages = {}
@@ -32,7 +33,11 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         " * Use /help_settings to get an explanation of the settings.\n" \
                         "\n" \
                         "_Ranges:_\n" \
-                        "Ranges are a comma-separated lists of numbers or number pairs. Number pairs are separated by a hyphen. Use no spaces in your range definition."
+                        "Ranges are a comma-separated lists of numbers or number pairs. Number pairs are separated by a hyphen. Use no spaces in your range definition.\n" \
+                        "" \
+                        "\n" \
+                        "_Other:_\n" \
+                        " * Use /about to learn more about me."
 
 # All normal messages sent to the user
 messages = {}
@@ -41,6 +46,9 @@ messages["welcome"] = 'Hey ! \nFirst things first, you will need to set your aut
                       'If you need help, type /help!'
 messages["location_updated"] = "Location updated."
 messages["setting_updated"] = "Setting updated."
+messages["about"] = "https://github.com/arthurdk/tinder-telegram-bot"
+messages["start_chat"] = "Please start a private conversation with me first. Follow the link: %s"
+messages["send_token"] = "Please send me your authentication token in our private conversation %s "
 
 # Error messages
 error_messages = {}
@@ -74,6 +82,56 @@ def send_message(bot, chat_id, name):
         raise Exception('Unknown message: ' + name)
 
     bot.sendMessage(chat_id, text=messages[name])
+
+
+def send_private_message(bot, user_id, text):
+    """
+    Return True if bot was able to actually send private message
+    :param bot:
+    :param user_id:
+    :param text:
+    :return:
+    """
+    try:
+        bot.sendMessage(user_id, text=text)
+        return True
+    except TelegramError as e:
+        if e.message == "Unauthorized":
+            return False
+
+
+def send_private_photo(bot, user_id, url, caption):
+    """
+    Return True if bot was able to actually send private photo
+    :param caption:
+    :return:
+    :param bot:
+    :param user_id:
+    :param url:
+    :return:
+    """
+    try:
+        bot.sendPhoto(user_id, photo=url, caption=caption)
+        return True
+    except TelegramError as e:
+        if e.message == "Unauthorized":
+            return False
+
+
+def notify_start_private_chat(bot, chat_id, incoming_message_id=None):
+    if incoming_message_id is not None:
+        bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name, reply_to_message_id=incoming_message_id)
+    else:
+        bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name)
+
+
+def notify_send_token(bot, chat_id, reply_to_message_id, is_group, group_name):
+    msg = messages["send_token"] % bot.name
+    if is_group:
+        msg += " for the group %s" % group_name
+    bot.sendMessage(chat_id,
+                    text=msg,
+                    reply_to_message_id=reply_to_message_id)
 
 
 def send_error(bot, chat_id, name):

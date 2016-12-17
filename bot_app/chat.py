@@ -80,6 +80,7 @@ def get_match(bot, update, id, matches=None):
 
     return matches[id]
 
+
 def parse_range(bot, chat_id, range_string, max_size):
     ranges = range_string.split(',')
     result = []
@@ -198,6 +199,7 @@ def poll_messages(bot, update, args):
     # Block polling for some time
     ts = time.time()
     conversation.block_polling_until = ts + float(settings.get_setting("poll_block_time")) * len(match_ids)
+
 
 def unblock(bot, update):
     global data

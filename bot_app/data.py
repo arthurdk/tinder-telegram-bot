@@ -1,1 +1,2 @@
 conversations = {}
+known_users = {}

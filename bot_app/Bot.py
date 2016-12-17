@@ -200,7 +200,8 @@ def do_vote(bot, update, job_queue):
     sender = query.from_user.id
 
     if query.data == Vote.MORE:
-        send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot)
+        send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
+                         incoming_message_id=update.callback_query.message.message_id)
     else:
         data.conversations[chat_id].current_votes[sender] = query.data
         # Schedule end of voting session
@@ -217,9 +218,10 @@ def do_vote(bot, update, job_queue):
 
 
 @run_async
-def send_more_photos(private_chat_id, group_chat_id, bot):
+def send_more_photos(private_chat_id, group_chat_id, bot, incoming_message_id):
     """
     Function used for sending all pictures to private chat directly
+    :param incoming_message_id:
     :param private_chat_id:
     :param group_chat_id:
     :param bot:
@@ -228,28 +230,24 @@ def send_more_photos(private_chat_id, group_chat_id, bot):
     global data
     if group_chat_id in data.conversations:
         if data.conversations[group_chat_id].is_voting:
+
             photos = data.conversations[group_chat_id].current_user.get_photos(width='320')
             for idx, photo in enumerate(photos):
                 caption = " %s (%d/%d) " % (data.conversations[group_chat_id].current_user.name, idx + 1, len(photos))
-                bot.sendPhoto(private_chat_id, photo=photo, caption=caption)
+
+                is_msg_sent = send_private_photo(bot=bot, caption=caption, url=photo, user_id=private_chat_id)
+
+                if not is_msg_sent:
+                    notify_start_private_chat(bot=bot,
+                                              chat_id=group_chat_id,
+                                              incoming_message_id=incoming_message_id)
+                    break
+
         else:
             message = "There is not vote going on right now."
             bot.sendMessage(private_chat_id, text=message)
     else:
         send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
-
-"""
-def send_bio(private_chat_id, group_chat_id, bot):
-    global conversations
-    if group_chat_id in conversations:
-        if conversations[group_chat_id].is_voting:
-            msg = " %s \n %s" % (conversations[group_chat_id].current_user.name,
-                                 conversations[group_chat_id].current_user.bio)
-            bot.sendMessage(private_chat_id, text=msg)
-        else:
-            message = "There is not vote going on right now."
-            bot.sendMessage(private_chat_id, text=message)
-"""
 
 
 def set_account(bot, update):
@@ -257,12 +255,19 @@ def set_account(bot, update):
     sender = update.message.from_user.id
     change_account_queries[sender] = update.message.chat_id
     msg = "Send me your facebook authentication token"
-    if update.message.chat.type == "group":
-        bot.sendMessage(change_account_queries[sender],
-                        text="Please send me your authentication token in our private conversation @TinderGroupBot",
-                        reply_to_message_id=update.message.message_id)
-        msg += " for the group %s" % update.message.chat.title
-    bot.sendMessage(sender, text=msg)
+
+    is_msg_sent = send_private_message(bot, user_id=sender, text=msg)
+
+    if not is_msg_sent:
+        notify_start_private_chat(bot=bot,
+                                  chat_id=change_account_queries[sender],
+                                  incoming_message_id=update.message.message_id)
+    elif update.message.chat.type == "group":
+        notify_send_token(bot=bot, is_group=True,
+                          chat_id=change_account_queries[sender],
+                          reply_to_message_id=update.message.message_id, group_name=update.message.chat.title)
+
+
 
 
 @run_async
@@ -319,6 +324,12 @@ def message_handler(bot, update):
         update.message.reply_text("I'm sorry Dave I'm afraid I can't do that.")
 
 
+def send_about(bot, update):
+    chat_id = update.message.chat_id
+    message = messages["about"]
+    bot.sendMessage(chat_id, text=message)
+
+
 def main():
     """
     db.connect()
@@ -343,7 +354,7 @@ def main():
     dispatcher.add_handler(MessageHandler(Filters.location, update_location))
     dispatcher.add_handler(CommandHandler('new_vote', start_vote_session, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler('timeout', set_timeout, pass_args=True))
-
+    dispatcher.add_handler(CommandHandler('about', send_about))
     # Chat functionality
     dispatcher.add_handler(CommandHandler('msg', chat.send_message, pass_args=True))
     dispatcher.add_handler(CommandHandler('poll_msgs', chat.poll_messages, pass_args=True))

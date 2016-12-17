@@ -21,19 +21,39 @@ An instance of the bot is available on Telegram, but it's hosted on a small mach
 
 If you join a group where a bot is active, remember to start a conversation with the bot in order to let it send you private message.
 
-|            Command            |                                                       Explanation                                                       |
-|:-----------------------------:|:-----------------------------------------------------------------------------------------------------------------------:|
-| /set_account                  | Send this command to the bot and he will send you a private message asking to send him the private authentication token |
-| /new_vote                     |                                     Begin a new vote session if one is not happening                                    |
-| /matches                      |          Receives the current matches of the connected Tinder account to your private conversation with the bot         |
-| /auto                         |                        Toggle automatic mode (the bot will begin new vote session automatically)                        |
-| /location                     |                                        Change your location using GPS coordinates. Usage: /location 60.169101 24.932847 |
-| /timeout                      | Change the duration on how many seconds the bot will wait after the first vote. Usage: /timeout <time>                  |
-| /msg                          | Send a message to a match. Usage: /msg <match-id> <message> You can get the match-id by executing /matches.             |
-| /poll_msgs                    | Read messages from a conversation. Usage: /poll_msgs <match-id> <nb_messages>                                           |
-| /list_settings                | List all settings and their values.                                                                                     |
-| /set_settings                 | Change a setting. If an account is set, this command can only be executed by the account owner.                         |
 
+_Logging in with your Tinder account:_
+
+1. Use /set_account
+2. The bot will ask you for your facebook token. Just send it plain.
+
+_Searching for matches:_
+
+ * Use /location to set your location.
+ * Use /new_vote to start voting for a new stranger. Voting time can be set with /timeout.
+ * Use /auto to toggle between automatic and manual mode. In automatic mode, a new vote will be started after the current one is finished.
+ * Use /matches to list your matches in your private chat.
+ * A draw is always a no.
+
+_Chatting with matches:_
+
+ * Use /matches to list your matches in your private chat. Every match has an id. It can change if old matches unmatch.
+ * Use /msg to send a message to a match, and /poll_msgs to get the chat history with a match.
+ * The owner may use /unblock to remove the sending/polling blocade once. See /help_settings for more information.
+
+_Configuration:_
+
+ * Use /list_settings to list all settings and their values.
+ * Use /set_setting to change a setting.This command can only be executed by the account owner.
+ * Use /help_settings to get an explanation of the settings.
+
+_Ranges:_
+
+Ranges are a comma-separated lists of numbers or number pairs. Number pairs are separated by a hyphen. Use no spaces in your range definition.
+
+_Other:_
+
+ * Use /about to learn more about me.
 
 Note: Only one person needs to set the Tinder account in order for the bot to work. The others can just enjoy.
 
@@ -48,7 +68,7 @@ I did not test those personally so use it at your own risks.
 #### Chrome plugin
 * https://chrome.google.com/webstore/detail/tinder-auth-token-grabber/pgjknpecbogfcnlfjehdidbeablebepc?hl=en-GB
 
-#### Webapp
+#### Web app
 
 * https://github.com/tinderjs/tinderauth
 

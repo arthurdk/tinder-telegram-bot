@@ -79,9 +79,10 @@ def send_help(bot, chat_id, command, error=""):
 
 def send_message(bot, chat_id, name):
     if name not in messages:
-        raise Exception('Unknown message: ' + name)
-
-    bot.sendMessage(chat_id, text=messages[name])
+        msg = name
+    else:
+        msg = messages[name]
+    bot.sendMessage(chat_id, text=msg)
 
 
 def send_private_message(bot, user_id, text):

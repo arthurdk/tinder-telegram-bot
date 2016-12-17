@@ -1,7 +1,7 @@
 from bot_app.messages import *
 from bot_app.ranges import *
 import bot_app.data as data
-
+from bot_app.FlexibleBoolean import FlexibleBoolean
 
 class Settings:
     values = {}
@@ -13,6 +13,7 @@ class Settings:
     values["max_timeout"] = Range(0, 86400)
     values["send_block_time"] = Range(0, 3600)
     values["poll_block_time"] = Range(0, 3600)
+    values["blind_mode"] = FlexibleBoolean(is_value=False)
 
     helps = {}
     helps["chat_mode"] = "Different modes for chatting. Off means /msg and /poll_msgs are disabled. " \
@@ -23,6 +24,7 @@ class Settings:
     helps["min_votes_before_timeout"] = "Not implemented."
     helps["min_timeout"] = "The minimum value for the timeout the users can set."
     helps["max_timeout"] = "The maximum value for the timeout the users can set."
+    helps["blind_mode"] = "If turned one, it will hide the vote count"
     helps["send_block_time"] = "The block time after a /msg command. In this time, nobody can send a message. " \
                                "The time is given in seconds and scales linearly with the range size of the /msg " \
                                "command. Example: send_block_time is 5 and we send '/msg 2,4-6 Hey', then the block " \
@@ -42,9 +44,11 @@ class Settings:
         self.settings["max_timeout"] = 86400
         self.settings["send_block_time"] = 10
         self.settings["poll_block_time"] = 10
+        self.settings["blind_mode"] = FlexibleBoolean("False", is_value=True)
 
     def set_setting(self, setting, value):
         if setting not in self.settings.keys():
+            # TODO handle this one
             raise Exception("Unknown setting: " + str(setting))
 
         if value not in self.values[setting] and self.values[setting] is not None:
@@ -119,7 +123,11 @@ def set_setting(bot, update, args):
         send_help(bot, chat_id, "set_setting", "Unknown setting")
         return
 
-    if data.conversations[chat_id].settings.set_setting(args[0], args[1]):
+    value = args[1]
+    if args[0] == "blind_mode":
+        value = FlexibleBoolean(value, is_value=True)
+
+    if data.conversations[chat_id].settings.set_setting(args[0], value):
         send_message(bot, chat_id, "setting_updated")
     else:
         send_message(bot, chat_id, "Unknown value for setting: " + str(args[0]) + " = " + str(args[1]))

@@ -77,7 +77,7 @@ def set_timeout(bot, update, args):
                 else:
                     send_custom_message(bot, chat_id, "Timeout out of range: "
                                         + str(settings.get_setting("min_timeout")) + "-"
-                                        + settings.get_setting("max_timeout"))
+                                        + str(settings.get_setting("max_timeout")))
             except AttributeError:
                 message = "An error happened."
         bot.sendMessage(chat_id, text=message)
@@ -174,7 +174,7 @@ def start_vote(bot, job):
                 msg = bot.sendPhoto(job.context, photo=photos[0], caption=name)
                 conversation.vote_msg = msg
                 # Prepare voting inline keyboard
-                reply_markup = get_vote_keyboard(chat_id=chat_id)
+                reply_markup = get_vote_keyboard(conversation=conversation)
                 message = get_question_match(conversation=conversation)
                 msg = bot.sendMessage(job.context, text=message, reply_markup=reply_markup)
                 conversation.result_msg = msg
@@ -185,19 +185,21 @@ def start_vote(bot, job):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
-def get_vote_keyboard(chat_id):
+def get_vote_keyboard(conversation):
     global data
-    if chat_id in data.conversations:
-        likes, dislikes = data.conversations[chat_id].get_stats()
-        like_label = "❤️ (%d)" % likes
-        dislike_label = "❌ (%d)" % dislikes
-        keyboard = [[InlineKeyboardButton(like_label, callback_data=Vote.LIKE),
-                     InlineKeyboardButton("More pictures", callback_data=Vote.MORE),
-                     InlineKeyboardButton(dislike_label, callback_data=Vote.DISLIKE)]]
+    likes, dislikes = conversation.get_stats()
+    like_label = "❤️"
+    dislike_label = "❌"
 
-        return InlineKeyboardMarkup(keyboard)
-    else:
-        return InlineKeyboardMarkup([[]])
+    if not conversation.settings.get_setting("blind_mode").get_value():
+        like_label += " (%d)" % likes
+        dislike_label += " (%d)" % dislikes
+
+    keyboard = [[InlineKeyboardButton(like_label, callback_data=Vote.LIKE),
+                 InlineKeyboardButton("More pictures", callback_data=Vote.MORE),
+                 InlineKeyboardButton(dislike_label, callback_data=Vote.DISLIKE)]]
+
+    return InlineKeyboardMarkup(keyboard)
 
 
 def do_vote(bot, update, job_queue):
@@ -217,7 +219,7 @@ def do_vote(bot, update, job_queue):
             alarm_vote(bot, chat_id, job_queue)
 
     # Send back updated inline keyboard
-    reply_markup = get_vote_keyboard(chat_id=chat_id)
+    reply_markup = get_vote_keyboard(data.conversations[chat_id])
     bot.editMessageText(reply_markup=reply_markup,
                         chat_id=query.message.chat_id,
                         message_id=query.message.message_id,
@@ -273,8 +275,6 @@ def set_account(bot, update):
         notify_send_token(bot=bot, is_group=True,
                           chat_id=change_account_queries[sender],
                           reply_to_message_id=update.message.message_id, group_name=update.message.chat.title)
-
-
 
 
 @run_async

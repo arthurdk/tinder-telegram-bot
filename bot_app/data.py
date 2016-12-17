@@ -1,2 +1,1 @@
 conversations = {}
-known_users = {}

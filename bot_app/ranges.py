@@ -1,4 +1,7 @@
-class Range:
+from bot_app.BaseSetting import BaseSetting
+
+
+class Range(BaseSetting):
     def __init__(self, a, b):
         self.a = a
         self.b = b

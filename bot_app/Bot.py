@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
+from telegram.ext import InlineQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, TelegramError, error
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler, Filters, MessageHandler
 from telegram.ext.dispatcher import run_async
@@ -16,6 +16,7 @@ import bot_app.data as data
 import threading
 import time
 import re
+
 # import peewee as pw
 
 
@@ -164,7 +165,7 @@ def start_vote(bot, job):
             retry = 0
             while retry < 3 and len(conversation.users) == 0:
                 conversation.refresh_users()
-                retry +=1
+                retry += 1
             # Check if there are still user in the queue
             if len(conversation.users) == 0:
                 bot.sendMessage(job.context, text="There are no other users available.")
@@ -207,7 +208,11 @@ def get_vote_keyboard(conversation):
 
     keyboard = [[InlineKeyboardButton(like_label, callback_data=Vote.LIKE),
                  InlineKeyboardButton("More pictures", callback_data=Vote.MORE),
-                 InlineKeyboardButton(dislike_label, callback_data=Vote.DISLIKE)]]
+                 InlineKeyboardButton(dislike_label, callback_data=Vote.DISLIKE)],
+                [InlineKeyboardButton("Inline pictures",
+                                      switch_inline_query_current_chat="pictures "+str(conversation.group_id)),
+                 InlineKeyboardButton("Matches",
+                                      switch_inline_query_current_chat="matches " + str(conversation.group_id))]]
 
     return InlineKeyboardMarkup(keyboard)
 
@@ -343,13 +348,11 @@ def message_handler(bot, update):
     elif update.message.chat.type != "group":
         update.message.reply_text(error_messages["unknown_command"])
 
-
-
-
 def send_about(bot, update):
     chat_id = update.message.chat_id
     message = messages["about"]
     bot.sendMessage(chat_id, text=message)
+
 
 def custom_command_handler(bot, update):
     # /msg command. Preserves whitespace. Leaves error handling to the chat.send_message method
@@ -402,9 +405,14 @@ def main():
     dispatcher.add_handler(CommandHandler('set_setting', admin.set_setting, pass_args=True))
     dispatcher.add_handler(CommandHandler('list_settings', admin.list_settings))
     dispatcher.add_handler(CommandHandler('help_settings', admin.help_settings))
+    inline_caps_handler = InlineQueryHandler(chat.inline_preview)
+    dispatcher.add_handler(inline_caps_handler)
     dispatcher.add_handler(MessageHandler(Filters.command, custom_command_handler))
+
     updater.start_polling()
     updater.idle()
+
+
 
 
 if __name__ == "__main__":

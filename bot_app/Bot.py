@@ -139,7 +139,7 @@ def start_vote_session(bot, update, job_queue):
 
 def get_question_match(conversation):
     name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
-    question = "So what do you think of %s?" % name
+    question = "So what do you think of %s? (%d votes)" % (name, len(conversation.get_votes()))
     return question
 
 

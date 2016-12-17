@@ -2,6 +2,7 @@ from bot_app.messages import *
 from bot_app.ranges import *
 import bot_app.data as data
 from bot_app.FlexibleBoolean import FlexibleBoolean
+import bot_app.settings as settings
 
 class Settings:
     values = {}
@@ -38,16 +39,16 @@ class Settings:
 
     def __init__(self):
         self.settings = {}
-        self.settings["chat_mode"] = "off"  # Modes are off, owner and all
-        self.settings["max_poll_range_size"] = "100"
-        self.settings["max_send_range_size"] = "1"
-        self.settings["min_votes_before_timeout"] = "1"
-        self.settings["min_timeout"] = "10"
-        self.settings["max_timeout"] = "86400"
-        self.settings["send_block_time"] = "10"
-        self.settings["poll_block_time"] = "10"
+        self.settings["chat_mode"] = settings.chat_mode_default  # Modes are off, owner and all
+        self.settings["max_poll_range_size"] = settings.max_poll_range_size_default
+        self.settings["max_send_range_size"] = settings.max_send_range_size_default
+        self.settings["min_votes_before_timeout"] = settings.min_votes_before_timeout_default
+        self.settings["min_timeout"] = settings.min_timeout_default
+        self.settings["max_timeout"] = settings.max_timeout_default
+        self.settings["send_block_time"] = settings.send_block_time_default
+        self.settings["poll_block_time"] = settings.poll_block_time_default
         self.settings["blind_mode"] = FlexibleBoolean("False", is_value=True)
-        self.settings["matches_cache_time"] = "60"
+        self.settings["matches_cache_time"] = settings.matches_cache_time_default
 
     def set_setting(self, setting, value):
         if setting not in self.settings.keys():

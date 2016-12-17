@@ -71,7 +71,7 @@ def set_timeout(bot, update, args):
                 timeout = int(args[0])
                 settings = data.conversations[chat_id].settings
 
-                if settings.get_setting("min_timeout") <= timeout and timeout <= settings.get_setting("max_timeout"):
+                if int(settings.get_setting("min_timeout")) <= timeout and timeout <= int(settings.get_setting("max_timeout")):
                     data.conversations[chat_id].timeout = timeout
                     message = "Timeout updated to %d seconds." % data.conversations[chat_id].timeout
                 else:
@@ -356,6 +356,7 @@ def main():
     dispatcher.add_handler(CommandHandler('new_vote', start_vote_session, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler('timeout', set_timeout, pass_args=True))
     dispatcher.add_handler(CommandHandler('about', send_about))
+
     # Chat functionality
     dispatcher.add_handler(CommandHandler('msg', chat.send_message, pass_args=True))
     dispatcher.add_handler(CommandHandler('poll_msgs', chat.poll_messages, pass_args=True))

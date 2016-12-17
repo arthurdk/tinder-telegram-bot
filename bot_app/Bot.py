@@ -413,14 +413,17 @@ def main():
 
     # Chat functionality
     dispatcher.add_handler(CommandHandler('poll_msgs', chat.poll_messages, pass_args=True))
+    dispatcher.add_handler(CommandHandler('poll_unanswered', chat.poll_unanswered_messages, pass_args=True))
     dispatcher.add_handler(CommandHandler('unblock', chat.unblock))
 
     # Settings
     dispatcher.add_handler(CommandHandler('set_setting', admin.set_setting, pass_args=True))
     dispatcher.add_handler(CommandHandler('list_settings', admin.list_settings))
     dispatcher.add_handler(CommandHandler('help_settings', admin.help_settings))
+
     inline_caps_handler = InlineQueryHandler(chat.inline_preview)
     dispatcher.add_handler(inline_caps_handler)
+
     dispatcher.add_handler(MessageHandler(Filters.command, custom_command_handler))
 
     updater.start_polling()

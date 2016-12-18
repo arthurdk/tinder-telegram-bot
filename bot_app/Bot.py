@@ -342,7 +342,7 @@ def message_handler(bot, update):
 
             # Create Tinder session
             session = create_pynder_session(update.message.text)
-            message = "Switching to %s account." % session.profile.name
+            message = "Switching to %s's account." % session.profile.name
             bot.sendMessage(chat_id=change_account_queries[sender], text=message)
             if sender != change_account_queries[sender]:
                 group_name = bot.getChat(chat_id=change_account_queries[sender]).title
@@ -350,14 +350,9 @@ def message_handler(bot, update):
                                 text=message,
                                 reply_markup=keyboards.switch_group_keyboard())
             # Create conversation
-            conversation = Conversation(change_account_queries[sender], session)
+            conversation = Conversation(change_account_queries[sender], session, sender)
             data.conversations[change_account_queries[sender]] = conversation
             del change_account_queries[sender]
-
-            conversation.owner = sender
-
-            conversation.block_polling_until = 0
-            conversation.block_sending_until = 0
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)

@@ -10,5 +10,12 @@ class BaseSetting(ABC):
     def __contains__(self, item):
         pass
 
+    @abstractmethod
     def __str__(self):
         pass
+
+    def translate_value(self, value):
+        return value
+
+    def is_valid_value(self, value):
+        return self.__contains__(value)

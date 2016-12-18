@@ -287,7 +287,7 @@ def set_account(bot, update):
 
 def wait_for_vote_timeout(conversation):
     min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
-    timeout_mode = conversation.settings.get_setting(setting="timout_mode")
+    timeout_mode = conversation.settings.get_setting(setting="timeout_mode")
     starting_time = -1
 
     # Wait for the number of required votes

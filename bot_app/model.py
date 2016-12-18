@@ -1,12 +1,7 @@
-
-
-# Homemade enum
-class Vote:
-    SUPERLIKE = "SUPERLIKE"
-    LIKE = "LIKE"
-    DISLIKE = "DISLIKE"
-    MORE = "MORE"
-#    BIO = "BIO"
+from bot_app.keyboards import *
+import threading
+import bot_app.admin as admin
+import time
 
 
 class Conversation:
@@ -23,6 +18,10 @@ class Conversation:
         self.timeout = 60
         self.auto = False
         self.vote_msg = None
+        self.settings = admin.Settings()
+        self.matches_cache_lock = threading.Lock()
+        self.matches_cache_time = 0
+        self.matches_cache = None
 
     def refresh_users(self):
         self.users = self.session.nearby_users()
@@ -37,8 +36,21 @@ class Conversation:
         likes = 0
         dislikes = 0
         for _, value in self.get_votes().items():
-            if value == Vote.LIKE:
+            if value == InlineKeyboard.LIKE:
                 likes += 1
-            elif value == Vote.DISLIKE:
+            elif value == InlineKeyboard.DISLIKE:
                 dislikes += 1
         return likes, dislikes
+
+    def get_matches(self):
+        # Matches cache
+        self.matches_cache_lock.acquire()
+
+        if time.time() - self.matches_cache_time > int(self.settings.get_setting("matches_cache_time")) \
+                or self.matches_cache is None:
+            self.matches_cache_time = time.time()
+            self.matches_cache = self.session.matches()
+
+        matches = self.matches_cache
+        self.matches_cache_lock.release()
+        return matches

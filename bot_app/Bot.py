@@ -8,14 +8,14 @@ import logging
 import pynder
 import time
 # from bot_app.db_model import Conversation, db
-from bot_app.model import Conversation, Vote
+from bot_app.model import Conversation
 import bot_app.chat as chat
 import bot_app.admin as admin
 from bot_app.messages import *
 import bot_app.data as data
 import bot_app.prediction as prediction
 import bot_app.data_retrieval as data_retrieval
-from bot_app.keyboards import *
+import bot_app.keyboards as keyboards
 import threading
 import time
 import re
@@ -115,16 +115,7 @@ def send_matches(bot, update):
         try:
             conversation = data.conversations[chat_id]
 
-            # Matches cache
-            conversation.matches_cache_lock.acquire()
-
-            if time.time() - conversation.matches_cache_time > int(conversation.settings.get_setting("matches_cache_time"))\
-                    or conversation.matches_cache is None:
-                conversation.matches_cache_time = time.time()
-                conversation.matches_cache = conversation.session.matches()
-
-            matches = conversation.matches_cache
-            conversation.matches_cache_lock.release()
+            matches = conversation.get_matches()
 
             id = 0
 
@@ -188,7 +179,7 @@ def start_vote(bot, job):
                     msg = bot.sendPhoto(chat_id, photo=photos[0], caption=name)
                     conversation.vote_msg = msg
                     # Prepare voting inline keyboard
-                    reply_markup = get_vote_keyboard(conversation=conversation)
+                    reply_markup = keyboards.get_vote_keyboard(conversation=conversation)
                     message = get_question_match(conversation=conversation)
                     msg2 = bot.sendMessage(chat_id, text=message, reply_markup=reply_markup)
                     conversation.result_msg = msg2
@@ -206,28 +197,32 @@ def start_vote(bot, job):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
-def do_vote(bot, update, job_queue):
+def do_press_inline_button(bot, update, job_queue):
     global data
-    chat_id = update.callback_query.message.chat_id
-    query = update.callback_query
-    sender = query.from_user.id
+    try:
+        chat_id = update.callback_query.message.chat_id
+        query = update.callback_query
+        sender = query.from_user.id
 
-    if query.data == Vote.MORE:
-        send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
-                         incoming_message_id=update.callback_query.message.message_id)
-    else:
-        data.conversations[chat_id].current_votes[sender] = query.data
-        # Schedule end of voting session
-        if not data.conversations[chat_id].is_alarm_set:
-            data.conversations[chat_id].is_alarm_set = True
-            alarm_vote(bot, chat_id, job_queue)
+        if query.data == keyboards.InlineKeyboard.MORE:
+            send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
+                             incoming_message_id=update.callback_query.message.message_id)
+        else:
+            data.conversations[chat_id].current_votes[sender] = query.data
+            # Schedule end of voting session
+            if not data.conversations[chat_id].is_alarm_set:
+                data.conversations[chat_id].is_alarm_set = True
+                alarm_vote(bot, chat_id, job_queue)
 
-    # Send back updated inline keyboard
-    reply_markup = get_vote_keyboard(data.conversations[chat_id])
-    bot.editMessageText(reply_markup=reply_markup,
-                        chat_id=query.message.chat_id,
-                        message_id=query.message.message_id,
-                        text=get_question_match(conversation=data.conversations[chat_id]))
+        # Send back updated inline keyboard
+        reply_markup = keyboards.get_vote_keyboard(data.conversations[chat_id])
+        bot.editMessageText(reply_markup=reply_markup,
+                            chat_id=query.message.chat_id,
+                            message_id=query.message.message_id,
+                            text=get_question_match(conversation=data.conversations[chat_id]))
+    # will catch when pressing same button twice # TODO fix the rotating icon
+    except TelegramError:
+        pass
 
 
 @run_async
@@ -280,7 +275,7 @@ def set_account(bot, update):
                                   chat_id=change_account_queries[sender],
                                   incoming_message_id=update.message.message_id)
     elif update.message.chat.type == "group":
-        keyboard = change_chat_keyboard(messages["switch_private"])
+        keyboard = keyboards.change_chat_keyboard(messages["switch_private"])
         notify_send_token(bot=bot, is_group=True,
                           chat_id=change_account_queries[sender],
                           reply_to_message_id=update.message.message_id, group_name=group_name,
@@ -328,27 +323,29 @@ def message_handler(bot, update):
 
     chat_id = update.message.chat_id
     sender = update.message.from_user.id
-
-    if sender in change_account_queries:
+    text = update.message.text
+    # Check action from main menu
+    if text in keyboards.main_keyboard:
+        send_matches_menu(bot, chat_id)
+    # Check login
+    elif sender in change_account_queries:
         try:
             # Create Tinder session
             session = create_pynder_session(update.message.text)
             message = "Switching to %s account." % session.profile.name
             bot.sendMessage(chat_id=change_account_queries[sender], text=message)
             if sender != change_account_queries[sender]:
-                bot.sendMessage(chat_id=sender, text=message, reply_markup=change_chat_keyboard(messages["back_group"]))
+                bot.sendMessage(chat_id=sender, text=message,
+                                reply_markup=keyboards.change_chat_keyboard(messages["back_group"]))
             # Create conversation
             conversation = Conversation(change_account_queries[sender], session)
             data.conversations[change_account_queries[sender]] = conversation
             del change_account_queries[sender]
 
             conversation.owner = sender
-            conversation.settings = admin.Settings()
+
             conversation.block_polling_until = 0
             conversation.block_sending_until = 0
-            conversation.matches_cache_lock = threading.Lock()
-            conversation.matches_cache_time = 0
-            conversation.matches_cache = None
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)
@@ -360,11 +357,18 @@ def message_handler(bot, update):
 
 def send_about(bot, update):
     chat_id = update.message.chat_id
-    """
-    bot.sendMessage(chat_id=chat_id, text="test", reply_markup=get_main_keyboard())
-    """
+    # bot.sendMessage(chat_id=chat_id, text="test", reply_markup=keyboards.get_main_keyboard())
     message = messages["about"]
     bot.sendMessage(chat_id, text=message)
+
+
+def send_matches_menu(bot, chat_id):
+    global data
+    if chat_id in data.conversations:
+        conversation = data.conversations[chat_id]
+        bot.sendMessage(chat_id=chat_id, text="Matches menu", reply_markup=keyboards.get_matches_menu(conversation))
+    else:
+        send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
 def custom_command_handler(bot, update):
@@ -403,7 +407,7 @@ def main():
     dispatcher.add_handler(CommandHandler('location', set_location, pass_args=True))
     dispatcher.add_handler(CommandHandler('set_account', set_account))
     dispatcher.add_handler(CommandHandler('matches', send_matches))
-    dispatcher.add_handler(CallbackQueryHandler(do_vote, pass_job_queue=True))
+    dispatcher.add_handler(CallbackQueryHandler(do_press_inline_button, pass_job_queue=True))
     dispatcher.add_handler(MessageHandler(Filters.text, message_handler))
     dispatcher.add_handler(MessageHandler(Filters.location, update_location))
     dispatcher.add_handler(CommandHandler('new_vote', start_vote_session, pass_job_queue=True))

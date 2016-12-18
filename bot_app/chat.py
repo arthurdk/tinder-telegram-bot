@@ -96,13 +96,12 @@ def inline_preview(bot, update):
         return
 
     conversation = data.conversations[chat_id]
-    session = conversation.session
 
     results = list()
     last_idx = 0
     cache = 60
     if mode == "matches":
-        matches = session.matches()
+        matches = conversation.get_matches()
 
         for idx, match in enumerate(matches):
             if idx >= offset:

@@ -75,7 +75,9 @@ def debug(bot, chat_id, message):
 
 def get_question_match(conversation):
     name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
-    question = messages["vote_question"] % (name, len(conversation.get_votes()), len(conversation.current_votes))
+    question = messages["vote_question"] % (name,
+                                            len(conversation.get_votes()),
+                                            int(conversation.settings.get_setting("min_votes_before_timeout")))
     return question
 
 

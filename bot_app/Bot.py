@@ -181,7 +181,7 @@ def start_vote(bot, job):
                     photos = conversation.current_user.get_photos(width='320')
                     current_vote = len(conversation.get_votes())
                     max_vote = conversation.settings.get_setting("min_votes_before_timeout")
-                    caption = get_caption_match(conversation.current_user, current_vote, max_vote)
+                    caption = get_caption_match(conversation.current_user, current_vote, max_vote, bio=True)
 
                     # Prepare voting inline keyboard
                     reply_markup = keyboards.get_vote_keyboard(conversation=conversation, bot_name=bot.username)
@@ -369,8 +369,12 @@ def alarm_vote(bot, chat_id, job_queue):
     msg = conversation.result_msg
     likes, dislikes = conversation.get_stats()
     message = "%d likes, %d dislikes " % (likes, dislikes)
-    bot.editMessageText(chat_id=msg.chat_id, message_id=msg.message_id, text=message)
-
+    current_vote = len(conversation.get_votes())
+    max_vote = conversation.settings.get_setting("min_votes_before_timeout")
+    caption = get_caption_match(conversation.current_user, current_vote, max_vote, bio=False)
+    bot.editMessageCaption(chat_id=msg.chat_id,
+                           message_id=msg.message_id,
+                           caption=caption + "\n%s" % message)
     if likes > dislikes:
         result = True
         conversation.current_user.like()

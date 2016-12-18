@@ -237,7 +237,8 @@ def do_press_inline_button(bot, update, job_queue):
         chat_id = update.callback_query.message.chat_id
         query = update.callback_query
         sender = query.from_user.id
-
+        new_vote = False
+        conversation = data.conversations[chat_id]
         if query.data == keyboards.InlineKeyboard.MORE:
             send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
                              incoming_message=update.callback_query.message)
@@ -245,18 +246,21 @@ def do_press_inline_button(bot, update, job_queue):
             send_instagram_urls(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
                                 incoming_message=update.callback_query.message)
         else:
-            data.conversations[chat_id].current_votes[sender] = query.data
+            if (sender in conversation.current_votes and not conversation.current_votes[sender] == query.data) \
+                    or sender not in conversation.current_votes:
+                new_vote = True
+                conversation.current_votes[sender] = query.data
             # Schedule end of voting session
             if not data.conversations[chat_id].is_alarm_set:
                 data.conversations[chat_id].is_alarm_set = True
                 alarm_vote(bot, chat_id, job_queue)
 
         # Send back updated inline keyboard
-        reply_markup = keyboards.get_vote_keyboard(data.conversations[chat_id], bot_name=bot.username)
-        bot.editMessageText(reply_markup=reply_markup,
-                            chat_id=query.message.chat_id,
-                            message_id=query.message.message_id,
-                            text=get_question_match(conversation=data.conversations[chat_id]))
+        if new_vote:
+            reply_markup = keyboards.get_vote_keyboard(data.conversations[chat_id],
+                                                       bot_name=bot.username)
+            query.message.edit_reply_markup(reply_markup=reply_markup)
+
     # will catch when pressing same button twice # TODO fix the rotating icon
     except TelegramError as e:
         raise e
@@ -326,7 +330,7 @@ def wait_for_vote_timeout(conversation):
 
     # Wait for the number of required votes
     while len(conversation.current_votes) < min_votes and len(conversation.current_votes) < 5 \
-                or timeout_mode == "dynamic":
+            or timeout_mode == "dynamic":
         if len(conversation.current_votes) > 0 and starting_time == -1:
             starting_time = time.time()
 

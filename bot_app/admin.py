@@ -18,7 +18,7 @@ class Setting:
         return "`" + self.name + "`: " + str(value) + " " + str(self.valid_values)
 
     def help_str(self):
-        return " - " + self.name + " " + str(self.valid_values) + ": " + self.help_message
+        return " - /" + self.name + " " + str(self.valid_values) + ": " + self.help_message
 
     def __contains__(self, item):
         return item in self.valid_values

@@ -6,7 +6,7 @@ import time
 
 class Conversation:
 
-    def __init__(self, group_id, session):
+    def __init__(self, group_id, session, owner):
         self.group_id = group_id
         self.session = session
         self.is_voting = False
@@ -22,6 +22,9 @@ class Conversation:
         self.matches_cache_lock = threading.Lock()
         self.matches_cache_time = 0
         self.matches_cache = None
+        self.owner = owner
+        self.block_polling_until = 0
+        self.block_sending_until = 0
 
     def refresh_users(self):
         self.users = self.session.nearby_users()

@@ -344,14 +344,9 @@ def message_handler(bot, update):
                 bot.sendMessage(chat_id=sender, text=message,
                                 reply_markup=keyboards.change_chat_keyboard(messages["back_group"]))
             # Create conversation
-            conversation = Conversation(change_account_queries[sender], session)
+            conversation = Conversation(change_account_queries[sender], session, sender)
             data.conversations[change_account_queries[sender]] = conversation
             del change_account_queries[sender]
-
-            conversation.owner = sender
-
-            conversation.block_polling_until = 0
-            conversation.block_sending_until = 0
         except pynder.errors.RequestError:
             message = "Authentication failed! Please try again."
             bot.sendMessage(chat_id, text=message)

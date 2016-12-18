@@ -19,6 +19,7 @@ import bot_app.data_retrieval as data_retrieval
 import bot_app.keyboards as keyboards
 import time
 import re
+import traceback
 
 # import peewee as pw
 from bot_app.settings import location_search_url
@@ -193,6 +194,7 @@ def start_vote(bot, job):
                     job_queue.put(prediction_job)
                 except BaseException as e:
                     conversation.set_is_voting(False)
+                    traceback.print_exc()
         else:
             bot.sendMessage(chat_id, text="Current vote is not finished yet.",
                             reply_to_message_id=conversation.vote_msg.message_id)

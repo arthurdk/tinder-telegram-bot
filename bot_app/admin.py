@@ -26,7 +26,7 @@ class Setting:
 
 class Settings:
     settings = {
-        "chat_mode": Setting("chat_mode", ["off", "owner", "all"],
+        "chat_mode": Setting("chat_mode", String(["off", "owner", "all"]),
                              "Different modes for chatting. Off means /msg and /poll_msgs are disabled. Owner means, "
                              "only the owner of the current account can use /msg, everybody can use /poll_msgs. All "
                              "means everybody can /msg and /poll_msgs."),
@@ -51,7 +51,7 @@ class Settings:
         "blind_mode": Setting("blind_mode", Boolean(), "If turned one, it will hide the vote count."),
         "matches_cache_time": Setting("matches_cache_time", Range(0, 60),
                                       "The time in seconds the matches for the /matches command are cached."),
-        "timeout_mode": Setting("timeout_mode", ["first_vote", "required_votes", "dynamic"],
+        "timeout_mode": Setting("timeout_mode", String(["first_vote", "required_votes", "dynamic"]),
                                 "Different modes for the timeout. 'first_vote' starts the timeout as soon as the first "
                                 "vote was cast. The vote doesn't end before the required amount of nodes is reached."
                                 "'required_votes' starts the timeout after the required amount of votes has been "
@@ -72,14 +72,15 @@ class Settings:
         if value not in Settings.settings[setting]:
             return False
 
-        self.values[setting] = Settings.settings[setting].valid_values.translate_value(value)
+        self.values[setting] = Settings.settings[setting].valid_values.convert(value)
         return True
 
     def get_setting(self, setting):
         if setting not in Settings.settings.keys():
             raise Exception("Unknown setting: " + str(setting))
 
-        return self.values[setting]
+        value = self.values[setting]
+        return Settings.settings[setting].valid_values.convert(value)
 
 
 def list_settings(bot, update):
@@ -91,8 +92,7 @@ def list_settings(bot, update):
         send_error(bot, chat_id, "account_not_setup")
         return
 
-    conversation = data.conversations[chat_id]
-    settings = conversation.settings
+    settings = data.conversations[chat_id].settings
     message = "Settings:\n"
 
     for s in sorted(Settings.settings.keys()):

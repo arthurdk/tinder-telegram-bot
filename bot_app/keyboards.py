@@ -45,7 +45,9 @@ def get_vote_keyboard(conversation, bot_name):
     second_row.append(InlineKeyboardButton("Matches",
                                            switch_inline_query_current_chat="matches " + str(conversation.group_id)))
     keyboard.append(second_row)
-    keyboard.append([InlineKeyboardButton(messages['switch_private'], url="https://telegram.me/%s?start=" % bot_name)])
+    if conversation.group_id < 0:
+        keyboard.append([InlineKeyboardButton(messages['switch_private'], url="https://telegram.me/%s?start=" % bot_name)])
+
     return InlineKeyboardMarkup(keyboard)
 
 

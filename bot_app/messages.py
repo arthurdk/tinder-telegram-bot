@@ -60,7 +60,7 @@ messages["ask_for_token"] = "Please, send me your facebook authentication token.
 
 # Error messages
 error_messages = {}
-error_messages["account_not_setup"] = "Chat not registered yet, please add token using /set_account/"
+error_messages["account_not_setup"] = "Chat not registered yet, please add token using /set_account/s"
 error_messages["unknown_match_id"] = "Unknown match-id."
 error_messages["command_not_allowed"] = "This command must not be executed by this user."
 error_messages["range_too_large"] = "The given range is too large."

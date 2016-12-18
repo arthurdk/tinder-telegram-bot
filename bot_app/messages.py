@@ -81,6 +81,18 @@ def get_question_match(conversation):
     return question
 
 
+def get_caption_match(user):
+    name = " %s - %d y.o - %d km away" % (user.name, user.age, user.distance_km)
+    # Append bio to caption if it's not empty
+    if len(user.bio) > 0:
+        name += "\n" + user.bio
+    if len(user.jobs) > 0:
+        pass
+    if len(user.schools) > 0:
+        name += "\nSchools: %s" % ",".join(user.schools)
+    return name
+
+
 def send_help(bot, chat_id, command, error=""):
     if command not in help_messages:
         raise Exception('Unknown command: ' + command)

@@ -177,11 +177,8 @@ def start_vote(bot, job):
 
                     # Retrieve photos
                     photos = conversation.current_user.get_photos(width='320')
-                    name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
-                    # Append bio to caption if it's not empty
-                    if len(conversation.current_user.bio) > 0:
-                        name += "\n" + data.conversations[chat_id].current_user.bio
-                    msg = bot.sendPhoto(chat_id, photo=photos[0], caption=name)
+                    caption = get_caption_match(conversation.current_user)
+                    msg = bot.sendPhoto(chat_id, photo=photos[0], caption=caption)
                     conversation.vote_msg = msg
                     # Prepare voting inline keyboard
                     reply_markup = keyboards.get_vote_keyboard(conversation=conversation)

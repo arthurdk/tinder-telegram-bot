@@ -262,7 +262,13 @@ def do_press_inline_button(bot, update, job_queue):
         if new_vote:
             reply_markup = keyboards.get_vote_keyboard(data.conversations[chat_id],
                                                        bot_name=bot.username)
-            query.message.edit_reply_markup(reply_markup=reply_markup)
+            current_vote = len(conversation.get_votes())
+            max_vote = conversation.settings.get_setting("min_votes_before_timeout")
+            caption = get_caption_match(conversation.current_user, current_vote, max_vote)
+            bot.editMessageCaption(chat_id=chat_id,
+                                   message_id=query.message.message_id,
+                                   reply_markup=reply_markup,
+                                   caption=caption)
 
     # will catch when pressing same button twice # TODO fix the rotating icon
     except TelegramError as e:

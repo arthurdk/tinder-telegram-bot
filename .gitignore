@@ -94,3 +94,6 @@ settings.py
 
 # Vim tmp files
 *.swp
+
+# Projects data files
+data/

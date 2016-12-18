@@ -17,6 +17,9 @@ class Range(BaseSetting):
     def __str__(self):
         return "[" + str(self.a) + "-" + str(self.b) + "]"
 
+    def convert(self, value):
+        return int(value)
+
 
 class Boolean(BaseSetting):
     boolean_true = frozenset(['true', '1', 't', 'y', 'yes', 'on'])
@@ -32,10 +35,21 @@ class Boolean(BaseSetting):
     def __str__(self):
         return "[True, False]"
 
-    def translate_value(self, value):
+    def convert(self, value):
         if str(value).lower() in self.boolean_true:
-            return "True"
+            return True
         elif str(value).lower() in self.boolean_false:
-            return "False"
+            return False
         else:
             raise Exception("Value is not boolean: " + str(value))
+
+
+class String(BaseSetting):
+    def __init__(self, valid_values):
+        self.valid_values = valid_values
+
+    def __contains__(self, item):
+        return item in self.valid_values
+
+    def __str__(self):
+        return str(self.valid_values)

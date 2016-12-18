@@ -14,7 +14,7 @@ class BaseSetting(ABC):
     def __str__(self):
         pass
 
-    def translate_value(self, value):
+    def convert(self, value):
         return value
 
     def is_valid_value(self, value):

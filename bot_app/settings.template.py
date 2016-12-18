@@ -14,9 +14,10 @@ settings_defaults = {
     "send_block_time": "10",
     "poll_block_time": "10",
     "blind_mode": "False",
-    "matches_cache_time": "60"
+    "matches_cache_time": "60",
+    "timeout_mode": "dynamic"
 }
 
 prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
 location_search_url = "http://nominatim.openstreetmap.org/search/"
-data_retrieval_path = "./"
+data_retrieval_path = "./data/"

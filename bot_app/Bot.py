@@ -19,6 +19,7 @@ import bot_app.data_retrieval as data_retrieval
 import bot_app.keyboards as keyboards
 import time
 import re
+import traceback
 
 # import peewee as pw
 from bot_app.settings import location_search_url
@@ -82,7 +83,7 @@ def set_timeout(bot, update, args):
                 timeout = int(args[0])
                 settings = data.conversations[chat_id].settings
 
-                if int(settings.get_setting("min_timeout")) <= timeout and timeout <= int(
+                if int(settings.get_setting("min_timeout")) <= timeout <= int(
                         settings.get_setting("max_timeout")):
                     data.conversations[chat_id].timeout = timeout
                     message = "Timeout updated to %d seconds." % data.conversations[chat_id].timeout
@@ -193,6 +194,7 @@ def start_vote(bot, job):
                     job_queue.put(prediction_job)
                 except BaseException as e:
                     conversation.set_is_voting(False)
+                    traceback.print_exc()
         else:
             bot.sendMessage(chat_id, text="Current vote is not finished yet.",
                             reply_to_message_id=conversation.vote_msg.message_id)
@@ -285,17 +287,39 @@ def set_account(bot, update):
                           reply_markup=keyboard)
 
 
+def wait_for_vote_timeout(conversation):
+    min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
+    timeout_mode = conversation.settings.get_setting(setting="timeout_mode")
+    starting_time = -1
+
+    # Wait for the number of required votes
+    while len(conversation.current_votes) < min_votes and len(conversation.current_votes) < 5 \
+                or timeout_mode == "dynamic":
+        if len(conversation.current_votes) > 0 and starting_time == -1:
+            starting_time = time.time()
+
+        time.sleep(1)
+        min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
+
+        if timeout_mode == "dynamic" and len(conversation.current_votes) > 0:
+            votes_fraction = len(conversation.current_votes) / min_votes
+            current_time = time.time()
+
+            if current_time > starting_time + conversation.timeout / votes_fraction:
+                break
+
+    if timeout_mode == "required_votes":
+        time.sleep(conversation.timeout)
+    elif timeout_mode == "first_vote":
+        time.sleep(max(0, conversation.timeout + starting_time - time.time()))
+
+
 @run_async
 def alarm_vote(bot, chat_id, job_queue):
     global data
 
     conversation = data.conversations[chat_id]
-
-    min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
-    # Wait for the number of required votes
-    while len(conversation.current_votes) < min_votes and len(conversation.current_votes) < 5:
-        time.sleep(conversation.timeout)
-        min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
+    wait_for_vote_timeout(conversation)
 
     msg = conversation.result_msg
     likes, dislikes = conversation.get_stats()
@@ -334,7 +358,7 @@ def message_handler(bot, update):
     # Check login
     elif sender in change_account_queries:
         try:
-            # Notify this is going to take some tike
+            # Notify this is going to take some time
             if change_account_queries[sender] != sender:
                 bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
 
@@ -349,7 +373,7 @@ def message_handler(bot, update):
                 bot.sendMessage(chat_id=sender,
                                 text=message,
                                 reply_markup=keyboards.switch_group_keyboard())
-            # Create conversation
+            # Create conversation.get_value()
             conversation = Conversation(change_account_queries[sender], session, sender)
             data.conversations[change_account_queries[sender]] = conversation
             del change_account_queries[sender]

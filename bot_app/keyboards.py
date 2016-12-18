@@ -22,8 +22,9 @@ def get_vote_keyboard(conversation, bot_name):
     likes, dislikes = conversation.get_stats()
     like_label = "❤️"
     dislike_label = "❌"
-    blind_mode = conversation.settings.get_setting("blind_mode")
-    if not blind_mode:
+
+    if not conversation.settings.get_setting("blind_mode"):
+
         like_label += " (%d)" % likes
         dislike_label += " (%d)" % dislikes
 

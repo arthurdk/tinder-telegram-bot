@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import json
 import requests
 from telegram.ext.dispatcher import run_async
+from telegram import ChatAction
 
 
 @run_async
@@ -9,6 +10,7 @@ def do_prediction(bot, job):
     import bot_app.settings as settings
     if settings.prediction_backend is not None:
         chat_id, user_id, msg_id = job.context
+        bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         hot, nope = settings.prediction_backend.predict(user_id=user_id)
         if is_prediction_valid(hot, nope):
             bot.sendMessage(chat_id=chat_id, text="My two cents: \nHot:" + str(hot) + "\nNope:" + str(nope),

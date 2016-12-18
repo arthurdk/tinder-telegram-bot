@@ -10,7 +10,9 @@ class InlineKeyboard:
     BACK = "BACK"
     NEXT = "NEXT"
     PREVIOUS = "PREVIOUS"
-#    BIO = "BIO"
+
+
+# BIO = "BIO"
 
 main_keyboard = ["Matches"]
 
@@ -28,23 +30,28 @@ def get_vote_keyboard(conversation):
     keyboard = [[InlineKeyboardButton(like_label, callback_data=InlineKeyboard.LIKE),
                  InlineKeyboardButton("More pictures", callback_data=InlineKeyboard.MORE),
                  InlineKeyboardButton(dislike_label, callback_data=InlineKeyboard.DISLIKE)],
-                [InlineKeyboardButton("Inline pictures",
-                                      switch_inline_query_current_chat="pictures "+str(conversation.group_id)),
-                 InlineKeyboardButton("Matches",
-                                      switch_inline_query_current_chat="matches " + str(conversation.group_id))]]
+                ]
+    second_row = []
+    second_row.append(InlineKeyboardButton("Inline pictures",
+                                           switch_inline_query_current_chat="pictures " + str(conversation.group_id)))
+    instagram_user = conversation.current_user.instagram_username
+    if instagram_user is not None:
+        second_row.append(InlineKeyboardButton("Instagram",
+                                               url="http://instagram.com/%s" % instagram_user))
 
+    second_row.append(InlineKeyboardButton("Matches",
+                                           switch_inline_query_current_chat="matches " + str(conversation.group_id)))
+    keyboard.append(second_row)
     return InlineKeyboardMarkup(keyboard)
 
 
 def change_chat_keyboard(txt):
-
     keyboard = [[InlineKeyboardButton(txt, switch_inline_query="")]]
 
     return InlineKeyboardMarkup(keyboard)
 
 
 def get_main_keyboard():
-
     keyboard = [[KeyboardButton("/set_account"),
                  KeyboardButton("/auto")],
                 [KeyboardButton("/new_vote"),
@@ -60,7 +67,6 @@ def get_main_keyboard():
 
 
 def get_matches_menu(conversation):
-
     keyboard = [[InlineKeyboardButton("Quick view",
                                       switch_inline_query_current_chat="matches " + str(conversation.group_id)),
                  InlineKeyboardButton("Private pictures", callback_data=InlineKeyboard.MORE),
@@ -71,7 +77,6 @@ def get_matches_menu(conversation):
 
 
 def get_conversation_menu(conversation):
-
     keyboard = [[InlineKeyboardButton("Previous",
                                       switch_inline_query_current_chat="matches " + str(conversation.group_id)),
                  InlineKeyboardButton("<< Back", callback_data=InlineKeyboard.MORE),

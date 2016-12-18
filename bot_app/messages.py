@@ -18,7 +18,7 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
                         "_Searching for matches:_\n" \
                         " * Use /location to set your location.\n" \
-                        " * Use /new_vote to start voting for a new stranger. Voting time can be set with /timeout.\n" \
+                        " * Use /new_vote to start voting for a new stranger. Voting time can be set with /timeout. See /help_settings for more details.\n" \
                         " * Use /auto to toggle between automatic and manual mode. In automatic mode, a new vote will be started after the current one is finished.\n" \
                         " * Use /matches to list your matches in your private chat.\n" \
                         " * A draw is always a no.\n" \
@@ -55,7 +55,7 @@ messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"
 messages["unblocking_successful"] = "Sending and polling were unblocked."
 messages["switch_private"] = "Switch to private chat"
 messages["back_group"] = "Switch to group"
-messages["ask_for_token"] = "Please, send me your facebook authentication token\nNote: this token " \
+messages["ask_for_token"] = "Please, send me your facebook authentication token.\nNote: This token " \
                             "is only for accessing your Tinder account, your Facebook account is safe."
 
 # Error messages

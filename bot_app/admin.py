@@ -50,7 +50,13 @@ class Settings:
                                     "'/poll_msgs 2,4-6', then the block time will be 20 seconds."),
         "blind_mode": Setting("blind_mode", Boolean(), "If turned one, it will hide the vote count."),
         "matches_cache_time": Setting("matches_cache_time", Range(0, 60),
-                                      "The time in seconds the matches for the /matches command are cached.")
+                                      "The time in seconds the matches for the /matches command are cached."),
+        "timeout_mode": Setting("timeout_mode", ["first_vote", "required_votes", "dynamic"],
+                                "Different modes for the timeout. 'first_vote' starts the timeout as soon as the first "
+                                "vote was cast. The vote doesn't end before the required amount of nodes is reached."
+                                "'required_votes' starts the timeout after the required amount of votes has been "
+                                "reached. 'dynamic' allows voting to finish before the required amount of votes has "
+                                "been reached, but with a higher timeout.")
     }
 
     def __init__(self):

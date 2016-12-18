@@ -179,14 +179,17 @@ def start_vote(bot, job):
                     conversation.cur_user_insta_private = None
                     # Retrieve photos
                     photos = conversation.current_user.get_photos(width='320')
-                    caption = get_caption_match(conversation.current_user)
-                    msg = bot.sendPhoto(chat_id, photo=photos[0], caption=caption)
-                    conversation.vote_msg = msg
+                    current_vote = len(conversation.get_votes())
+                    max_vote = conversation.settings.get_setting("min_votes_before_timeout")
+                    caption = get_caption_match(conversation.current_user, current_vote, max_vote)
+
                     # Prepare voting inline keyboard
                     reply_markup = keyboards.get_vote_keyboard(conversation=conversation, bot_name=bot.username)
-                    message = get_question_match(conversation=conversation)
-                    msg2 = bot.sendMessage(chat_id, text=message, reply_markup=reply_markup)
-                    conversation.result_msg = msg2
+                    msg = bot.sendPhoto(chat_id, photo=photos[0], caption=caption,
+                                        reply_markup=reply_markup)
+                    # Why? Before this commit a question was sent to the group along with the photo.
+                    conversation.vote_msg = msg
+                    conversation.result_msg = msg
                     # Launch prediction
                     prediction_job = Job(prediction.do_prediction, 0,
                                          repeat=False,

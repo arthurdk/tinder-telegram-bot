@@ -87,8 +87,8 @@ def get_question_match(conversation):
     return question
 
 
-def get_caption_match(user):
-    name = " %s - %d y.o - %d km away" % (user.name, user.age, user.distance_km)
+def get_caption_match(user, current_vote, max_vote):
+    name = " %s - %d y.o - %d km away - %d/%s votes" % (user.name, user.age, user.distance_km, current_vote, max_vote)
     # Append bio to caption if it's not empty
     if len(user.bio) > 0:
         name += "\n" + user.bio

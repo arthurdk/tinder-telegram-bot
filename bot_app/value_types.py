@@ -1,5 +1,7 @@
+from bot_app.BaseSetting import BaseSetting
 
-class Range:
+
+class Range(BaseSetting):
     def __init__(self, a, b):
         self.a = a
         self.b = b
@@ -19,7 +21,7 @@ class Range:
         return int(value)
 
 
-class Boolean:
+class Boolean(BaseSetting):
     boolean_true = frozenset(['true', '1', 't', 'y', 'yes', 'on'])
     boolean_false = frozenset(['false', '0', 'f', 'n', 'no', 'off'])
     valid_values = frozenset(boolean_true | boolean_false)
@@ -42,7 +44,7 @@ class Boolean:
             raise Exception("Value is not boolean: " + str(value))
 
 
-class String:
+class String(BaseSetting):
     def __init__(self, valid_values):
         self.valid_values = valid_values
 

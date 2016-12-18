@@ -15,10 +15,10 @@ class Setting:
         return self.value
 
     def value_str(self, value):
-        return self.name + ": " + value + " " + str(self.valid_values)
+        return "`" + self.name + "`: " + value + " " + str(self.valid_values)
 
     def help_str(self):
-        return " * " + self.name + " " + str(self.valid_values) + ": " + self.help_message
+        return " - " + self.name + " " + str(self.valid_values) + ": " + self.help_message
 
     def __contains__(self, item):
         return item in self.valid_values
@@ -93,7 +93,7 @@ def list_settings(bot, update):
         return
 
     settings = data.conversations[chat_id].settings
-    message = "Settings:\n"
+    message = "*Settings*:\n"
 
     for s in sorted(Settings.settings.keys()):
         message += Settings.settings[s].value_str(settings.values[s]) + "\n"
@@ -106,7 +106,7 @@ def help_settings(bot, update):
 
     chat_id = update.message.chat_id
 
-    message = "Settings:\n"
+    message = "*Settings*:\n"
     for s in sorted(Settings.settings.keys()):
         message += Settings.settings[s].help_str() + "\n"
 

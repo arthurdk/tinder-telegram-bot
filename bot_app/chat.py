@@ -109,7 +109,7 @@ def inline_preview(bot, update):
                 full = match.user.get_photos(width='640')[0]
 
                 results.append(InlineQueryResultPhoto(id=idx, caption=match.user.name, description=match.user.name,
-                                                      photo_height=0,
+                                                      photo_height=640,
                                                       thumb_url=thumb,
                                                       photo_url=full))
                 last_idx = idx + 1
@@ -124,7 +124,7 @@ def inline_preview(bot, update):
 
                 results.append(InlineQueryResultPhoto(id=idx, caption="%s %d/%d" % (cur_user.name, idx, len(thumbs)),
                                                       description=cur_user.name,
-                                                      photo_height=0,
+                                                      photo_height=640,
                                                       thumb_url=thumb,
                                                       photo_url=full))
                 last_idx = idx + 1

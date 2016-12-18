@@ -4,42 +4,48 @@ from telegram import TelegramError
 
 # Help messages for all the bot commands. Use the internal function names as key!
 help_messages = {}
-help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nYou can get the match-id by executing /matches. Supports id ranges. With first argument = 'last', the max last matches are messaged."
-help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches. Supports id ranges. Second argument can be omitted and defaults to 5. Without arguments or with first argument = 'last', the max last matches are polled."
-help_messages["poll_unanswered"] = "Usage of /poll_unanswered:\n/poll_unanswered <match-id> <n>\nPolls the last n messages from the match. Shows them only if the last message is not from you. You should use it with an id range. Without arguments or with first argument = 'last', the max last matches are polled."
+help_messages["send_message"] = "Usage of /msg:\n" \
+                                "/msg <match-id> <message>\n" \
+                                "You can get the match-id by executing /matches. Supports id ranges. With first argument = 'last', the max last matches are messaged."
+help_messages["poll_messages"] = "Usage of `/poll_msgs`:\n" \
+                                 "`/poll_msgs` <match-id> <n>\n" \
+                                 "Polls the last n messages from the match. You can get the match-id by executing /matches. Supports id ranges. Second argument can be omitted and defaults to 5. Without arguments or with first argument = 'last', the max last matches are polled."
+help_messages["poll_unanswered"] = "Usage of `/poll_unanswered`:\n" \
+                                   "`/poll_unanswered` <match-id> <n>\nPolls the last n messages from the match. Shows them only if the last message is not from you. You should use it with an id range. Without arguments or with first argument = 'last', the max last matches are polled."
 help_messages["set_location"] = "Usage of /location:\n/set_location <place name> or <latitude> <longitude\nYou can also just use telegram to send a location to the group."
-help_messages["set_setting"] = "Usage of /set_setting:\n/set_setting <setting> <value>\nCommand may only be used by account owner."
+help_messages["set_setting"] = "Usage of `/set_setting`:\n`/set_setting` <setting> <value>\nCommand may only be used by account owner."
 
+# If you modify this sure the markdown is compatible with telegram !
 help_messages["help"] = "*Usage of the bot:*\n" \
                         "\n" \
                         "_Logging in with your Tinder account:_\n" \
-                        "1. Use /set_account\n" \
+                        "1. Use `/set_account` \n" \
                         "2. The bot will ask you for your facebook token. Just send it plain.\n" \
                         "\n" \
                         "_Searching for matches:_\n" \
-                        " * Use /location to set your location.\n" \
-                        " * Use /new_vote to start voting for a new stranger. Voting time can be set with /timeout. See /help_settings for more details.\n" \
-                        " * Use /auto to toggle between automatic and manual mode. In automatic mode, a new vote will be started after the current one is finished.\n" \
-                        " * Use /matches to list your matches in your private chat.\n" \
-                        " * A draw is always a no.\n" \
+                        " - Use /location to set your location.\n" \
+                        " - Use `/new_vote` to start voting for a new stranger. Voting time can be set with /timeout. See `/help_settings` for more details.\n" \
+                        " - Use /auto to toggle between automatic and manual mode. In automatic mode, a new vote will be started after the current one is finished.\n" \
+                        " - Use /matches to list your matches in your private chat.\n" \
+                        " - A draw is always a no.\n" \
                         "\n" \
                         "_Chatting with matches:_\n" \
-                        " * Use /matches to list your matches in your private chat. Every match has an id. It can change if old matches unmatch.\n" \
-                        " * Use /msg to send a message to a match. It supports match ranges.\n" \
-                        " * Use /poll_msgs to get the chat history with a match. It supports match ranges.\n" \
-                        " * Use /poll_unanswered to check for unanswered messages. Use it with a range. It returns only unanswered chats.\n" \
-                        " * The owner may use /unblock to remove the sending/polling blocade once. See /help_settings for more information.\n" \
+                        " - Use /matches to list your matches in your private chat. Every match has an id. It can change if old matches unmatch.\n" \
+                        " - Use /msg to send a message to a match. It supports match ranges.\n" \
+                        " - Use `/poll_msgs` to get the chat history with a match. It supports match ranges.\n" \
+                        " - Use `/poll_unanswered` to check for unanswered messages. Use it with a range. It returns only unanswered chats.\n" \
+                        " - The owner may use /unblock to remove the sending/polling blocade once. See `/help_settings` for more information.\n" \
                         "\n" \
                         "_Configuration:_\n" \
-                        " * Use /list_settings to list all settings and their values.\n" \
-                        " * Use /set_setting to change a setting.This command can only be executed by the account owner.\n" \
-                        " * Use /help_settings to get an explanation of the settings.\n" \
+                        " - Use `/list_settings` to list all settings and their values.\n" \
+                        " - Use `/set_setting` to change a setting.This command can only be executed by the account owner.\n" \
+                        " - Use `/help_settings` to get an explanation of the settings.\n" \
                         "\n" \
                         "_Ranges:_\n" \
                         "Ranges are a comma-separated lists of numbers or number pairs. Number pairs are separated by a hyphen. Use no spaces in your range definition. A range can be replaced with the word 'last'. Then the maximum last matches are used.\n" \
                         "\n" \
                         "_Other:_\n" \
-                        " * Use /about to learn more about me."
+                        " - Use /about to learn more about me."
 
 # All normal messages sent to the user
 messages = {}
@@ -60,7 +66,7 @@ messages["ask_for_token"] = "Please, send me your facebook authentication token.
 
 # Error messages
 error_messages = {}
-error_messages["account_not_setup"] = "Chat not registered yet, please add token using /set_account/s"
+error_messages["account_not_setup"] = "Chat not registered yet, please add token using /set_account"
 error_messages["unknown_match_id"] = "Unknown match-id."
 error_messages["command_not_allowed"] = "This command must not be executed by this user."
 error_messages["range_too_large"] = "The given range is too large."
@@ -102,7 +108,10 @@ def send_help(bot, chat_id, command, error=""):
         message = "Error: " + error + "\n"
 
     message += help_messages[command]
-    bot.sendMessage(chat_id, text=message)
+    try:
+        bot.sendMessage(chat_id, text=message, parse_mode=ParseMode.MARKDOWN)
+    except TelegramError as e:
+        raise e
 
 
 def send_message(bot, chat_id, name):
@@ -176,7 +185,11 @@ def unknown(bot, update):
 
 
 def send_custom_message(bot, chat_id, message):
-    bot.sendMessage(chat_id, text=message)
+    # Try sending markdown and revert to normal text if broken/h
+    try:
+        bot.sendMessage(chat_id, text=message, parse_mode=ParseMode.MARKDOWN)
+    except TelegramError:
+        bot.sendMessage(chat_id, text=message)
 
 ### Handling bot commands ###
 

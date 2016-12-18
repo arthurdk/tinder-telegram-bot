@@ -7,7 +7,7 @@ help_messages = {}
 help_messages["send_message"] = "Usage of /msg:\n/msg <match-id> <message>\nYou can get the match-id by executing /matches. Supports id ranges. With first argument = 'last', the max last matches are messaged."
 help_messages["poll_messages"] = "Usage of /poll_msgs:\n/poll_msgs <match-id> <n>\nPolls the last n messages from the match. You can get the match-id by executing /matches. Supports id ranges. Second argument can be omitted and defaults to 5. Without arguments or with first argument = 'last', the max last matches are polled."
 help_messages["poll_unanswered"] = "Usage of /poll_unanswered:\n/poll_unanswered <match-id> <n>\nPolls the last n messages from the match. Shows them only if the last message is not from you. You should use it with an id range. Without arguments or with first argument = 'last', the max last matches are polled."
-help_messages["set_location"] = "Usage of /set_location:\n/set_location <latitude> <longitude>\nYou can also just use telegram to send a location to the group."
+help_messages["set_location"] = "Usage of /location:\n/set_location <place name> or <latitude> <longitude\nYou can also just use telegram to send a location to the group."
 help_messages["set_setting"] = "Usage of /set_setting:\n/set_setting <setting> <value>\nCommand may only be used by account owner."
 
 help_messages["help"] = "*Usage of the bot:*\n" \

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+import requests
 from telegram.ext import InlineQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, TelegramError, error
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler, Filters, MessageHandler
@@ -21,7 +22,7 @@ import time
 import re
 
 # import peewee as pw
-
+from bot_app.settings import location_search_url
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -51,12 +52,15 @@ def set_location(bot, update, args):
     global data
     chat_id = update.message.chat_id
     if chat_id in data.conversations:
-        if len(args) != 2:
-            send_help(bot, chat_id, "set_location", "Wrong number of arguments")
+        if len(args) < 1:
+            send_help(bot, chat_id, "set_location", "Please indicate coordinates or the name of a place")
             return
+        else:
+            r = requests.get("{}{}?format=json&limit=1&bounded=0"
+                             .format(location_search_url, ' '.join([str(x) for x in args])))
         try:
-            latitude = args[0]
-            longitude = args[1]
+            latitude = r.json()[0]["lat"]
+            longitude = r.json()[0]["lon"]
             data.conversations[chat_id].session.update_location(latitude, longitude)
             send_message(bot, chat_id, "location_updated")
             data.conversations[chat_id].refresh_users()
@@ -78,7 +82,8 @@ def set_timeout(bot, update, args):
                 timeout = int(args[0])
                 settings = data.conversations[chat_id].settings
 
-                if int(settings.get_setting("min_timeout")) <= timeout and timeout <= int(settings.get_setting("max_timeout")):
+                if int(settings.get_setting("min_timeout")) <= timeout and timeout <= int(
+                        settings.get_setting("max_timeout")):
                     data.conversations[chat_id].timeout = timeout
                     message = "Timeout updated to %d seconds." % data.conversations[chat_id].timeout
                 else:
@@ -287,11 +292,12 @@ def alarm_vote(bot, chat_id, job_queue):
     global data
 
     conversation = data.conversations[chat_id]
-    min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
 
+    min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
     # Wait for the number of required votes
     while len(conversation.current_votes) < min_votes and len(conversation.current_votes) < 5:
         time.sleep(conversation.timeout)
+        min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
 
     msg = conversation.result_msg
     likes, dislikes = conversation.get_stats()

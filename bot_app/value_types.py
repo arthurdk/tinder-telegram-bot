@@ -52,4 +52,5 @@ class String(BaseSetting):
         return item in self.valid_values
 
     def __str__(self):
-        return str(self.valid_values)
+        formatted_value = ["`" + value + "`" for value in self.valid_values]
+        return ",".join(formatted_value)

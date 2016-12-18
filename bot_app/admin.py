@@ -15,7 +15,7 @@ class Setting:
         return self.value
 
     def value_str(self, value):
-        return "`" + self.name + "`: " + str(value) + " [" + str(self.valid_values)+ "]"
+        return "`" + self.name + "`: `" + str(value) + "` [" + str(self.valid_values) + "]"
 
     def help_str(self):
         return " - /" + self.name + " " + str(self.valid_values) + ": " + self.help_message

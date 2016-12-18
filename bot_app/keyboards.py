@@ -1,7 +1,8 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 from bot_app.messages import *
+import bot_app.data_retrieval as data_retrieval
 
-# Homemade enum
+# Homemade enum -> will change
 class InlineKeyboard:
     SUPERLIKE = "SUPERLIKE"
     LIKE = "LIKE"
@@ -10,6 +11,7 @@ class InlineKeyboard:
     BACK = "BACK"
     NEXT = "NEXT"
     PREVIOUS = "PREVIOUS"
+    INSTAGRAM = "INSTAGRAM"
 
 
 # BIO = "BIO"
@@ -24,7 +26,6 @@ def get_vote_keyboard(conversation, bot_name):
     dislike_label = "❌"
 
     if not conversation.settings.get_setting("blind_mode"):
-
         like_label += " (%d)" % likes
         dislike_label += " (%d)" % dislikes
 
@@ -37,16 +38,25 @@ def get_vote_keyboard(conversation, bot_name):
     second_row = []
     second_row.append(InlineKeyboardButton("Inline pictures",
                                            switch_inline_query_current_chat="pictures " + str(conversation.group_id)))
-    instagram_user = conversation.current_user.instagram_username
+    user = conversation.current_user
+    # Instagram button
+    instagram_user = user.instagram_username
     if instagram_user is not None:
-        second_row.append(InlineKeyboardButton("Instagram",
-                                               url="http://instagram.com/%s" % instagram_user))
+        label = "Instagram"
+        if conversation.cur_user_insta_private is None:
+            conversation.cur_user_insta_private = data_retrieval.is_instagram_private(instagram_user)
+        if not conversation.cur_user_insta_private:
+            button = InlineKeyboardButton(label, url="http://instagram.com/%s" % instagram_user)
+        else:
+            button = InlineKeyboardButton(label, callback_data=InlineKeyboard.INSTAGRAM)
+        second_row.append(button)
 
     second_row.append(InlineKeyboardButton("Matches",
                                            switch_inline_query_current_chat="matches " + str(conversation.group_id)))
     keyboard.append(second_row)
     if conversation.group_id < 0:
-        keyboard.append([InlineKeyboardButton(messages['switch_private'], url="https://telegram.me/%s?start=" % bot_name)])
+        keyboard.append(
+            [InlineKeyboardButton(messages['switch_private'], url="https://telegram.me/%s?start=" % bot_name)])
 
     return InlineKeyboardMarkup(keyboard)
 

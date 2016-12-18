@@ -52,7 +52,7 @@ messages = {}
 messages["welcome"] = 'Hey ! \nFirst things first, you will need to set your authentication ' \
                       'token using the /set_account command if you want to link your Tinder account.\n' \
                       'If you need help, type /help!'
-messages["location_updated"] = "Location updated."
+messages["location_updated"] = "Location updated. (this may not work, due to Tinder API)"
 messages["setting_updated"] = "Setting updated."
 messages["about"] = "https://github.com/arthurdk/tinder-telegram-bot"
 messages["start_chat"] = "Please start a private conversation with me first. Follow the link: %s"
@@ -150,6 +150,24 @@ def send_private_photo(bot, user_id, url, caption):
     """
     try:
         bot.sendPhoto(user_id, photo=url, caption=caption)
+        return True
+    except TelegramError as e:
+        if e.message == "Unauthorized":
+            return False
+
+
+def send_private_link(bot, user_id, url):
+    """
+    Return True if bot was able to actually send private photo
+    :param caption:
+    :return:
+    :param bot:
+    :param user_id:
+    :param url:
+    :return:
+    """
+    try:
+        bot.sendMessage(user_id, text=url + " ")
         return True
     except TelegramError as e:
         if e.message == "Unauthorized":

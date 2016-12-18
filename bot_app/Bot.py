@@ -176,7 +176,7 @@ def start_vote(bot, job):
                 try:
                     conversation.current_user = conversation.users[0]
                     del conversation.users[0]
-
+                    conversation.cur_user_insta_private = None
                     # Retrieve photos
                     photos = conversation.current_user.get_photos(width='320')
                     caption = get_caption_match(conversation.current_user)
@@ -202,6 +202,35 @@ def start_vote(bot, job):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
+@run_async
+def send_instagram_urls(private_chat_id, group_chat_id, bot, incoming_message):
+    global data
+    if group_chat_id in data.conversations:
+        conversation = data.conversations[group_chat_id]
+        if conversation.is_voting:
+            user = conversation.current_user
+            photos = user.instagram_photos
+            max_idx = len(photos) if len(photos) < 5 else 5
+            for idx, photo in enumerate(photos):
+                if idx >= max_idx:
+                    break
+                caption = " %s (%d/%d) " % (user.name, idx + 1, max_idx)
+
+                is_msg_sent = send_private_photo(caption=caption, bot=bot, url=photo['image'], user_id=private_chat_id)
+
+                if not is_msg_sent:
+                    notify_start_private_chat(bot=bot,
+                                              chat_id=group_chat_id,
+                                              incoming_message=incoming_message)
+                    break
+
+        else:
+            message = "There is not vote going on right now."
+            bot.sendMessage(private_chat_id, text=message)
+    else:
+        send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
+
+
 def do_press_inline_button(bot, update, job_queue):
     global data
     try:
@@ -212,6 +241,9 @@ def do_press_inline_button(bot, update, job_queue):
         if query.data == keyboards.InlineKeyboard.MORE:
             send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
                              incoming_message=update.callback_query.message)
+        elif query.data == keyboards.InlineKeyboard.INSTAGRAM:
+            send_instagram_urls(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
+                                incoming_message=update.callback_query.message)
         else:
             data.conversations[chat_id].current_votes[sender] = query.data
             # Schedule end of voting session
@@ -227,14 +259,14 @@ def do_press_inline_button(bot, update, job_queue):
                             text=get_question_match(conversation=data.conversations[chat_id]))
     # will catch when pressing same button twice # TODO fix the rotating icon
     except TelegramError as e:
-        pass
+        raise e
 
 
 @run_async
 def send_more_photos(private_chat_id, group_chat_id, bot, incoming_message):
     """
     Function used for sending all pictures to private chat directly
-    :param incoming_message_id:
+    :param incoming_message:
     :param private_chat_id:
     :param group_chat_id:
     :param bot:

@@ -349,7 +349,7 @@ def message_handler(bot, update):
                 bot.sendMessage(chat_id=sender,
                                 text=message,
                                 reply_markup=keyboards.switch_group_keyboard())
-            # Create conversation
+            # Create conversation.get_value()
             conversation = Conversation(change_account_queries[sender], session, sender)
             data.conversations[change_account_queries[sender]] = conversation
             del change_account_queries[sender]

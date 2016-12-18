@@ -23,7 +23,7 @@ def get_vote_keyboard(conversation):
     like_label = "❤️"
     dislike_label = "❌"
 
-    if not conversation.settings.get_setting("blind_mode").get_value():
+    if not bool(conversation.settings.get_setting("blind_mode")):
         like_label += " (%d)" % likes
         dislike_label += " (%d)" % dislikes
 

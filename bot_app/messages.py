@@ -53,6 +53,10 @@ messages["start_chat"] = "Please start a private conversation with me first. Fol
 messages["send_token"] = "Please send me your authentication token in our private conversation %s "
 messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"
 messages["unblocking_successful"] = "Sending and polling were unblocked."
+messages["switch_private"] = "Switch to private chat"
+messages["back_group"] = "Switch to group"
+messages["ask_for_token"] = "Please, send me your facebook authentication token\nNote: this token " \
+                            "is only for accessing your Tinder account, your Facebook account is safe."
 
 # Error messages
 error_messages = {}
@@ -136,13 +140,14 @@ def notify_start_private_chat(bot, chat_id, incoming_message_id=None):
         bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name)
 
 
-def notify_send_token(bot, chat_id, reply_to_message_id, is_group, group_name):
+def notify_send_token(bot, chat_id, reply_to_message_id, is_group, group_name, reply_markup=[[]]):
     msg = messages["send_token"] % bot.name
     if is_group:
         msg += " for the group %s" % group_name
     bot.sendMessage(chat_id,
                     text=msg,
-                    reply_to_message_id=reply_to_message_id)
+                    reply_to_message_id=reply_to_message_id,
+                    reply_markup=reply_markup)
 
 
 def send_error(bot, chat_id, name):

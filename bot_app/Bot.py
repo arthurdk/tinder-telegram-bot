@@ -267,7 +267,11 @@ def set_account(bot, update):
     global change_account_queries
     sender = update.message.from_user.id
     change_account_queries[sender] = update.message.chat_id
-    msg = "Send me your facebook authentication token"
+    msg = messages["ask_for_token"]
+
+    group_name = update.message.chat.title
+    if len(group_name) > 0:
+        msg += " for chat %s" % group_name
 
     is_msg_sent = send_private_message(bot, user_id=sender, text=msg)
 
@@ -276,9 +280,11 @@ def set_account(bot, update):
                                   chat_id=change_account_queries[sender],
                                   incoming_message_id=update.message.message_id)
     elif update.message.chat.type == "group":
+        keyboard = change_chat_keyboard(messages["switch_private"])
         notify_send_token(bot=bot, is_group=True,
                           chat_id=change_account_queries[sender],
-                          reply_to_message_id=update.message.message_id, group_name=update.message.chat.title)
+                          reply_to_message_id=update.message.message_id, group_name=group_name,
+                          reply_markup=keyboard)
 
 
 @run_async
@@ -329,6 +335,8 @@ def message_handler(bot, update):
             session = create_pynder_session(update.message.text)
             message = "Switching to %s account." % session.profile.name
             bot.sendMessage(chat_id=change_account_queries[sender], text=message)
+            if sender != change_account_queries[sender]:
+                bot.sendMessage(chat_id=sender, text=message, reply_markup=change_chat_keyboard(messages["back_group"]))
             # Create conversation
             conversation = Conversation(change_account_queries[sender], session)
             data.conversations[change_account_queries[sender]] = conversation

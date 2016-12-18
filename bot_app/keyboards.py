@@ -23,6 +23,13 @@ def get_vote_keyboard(conversation):
     return InlineKeyboardMarkup(keyboard)
 
 
+def change_chat_keyboard(txt):
+
+    keyboard = [[InlineKeyboardButton(txt, switch_inline_query="")]]
+
+    return InlineKeyboardMarkup(keyboard)
+
+
 def get_main_keyboard():
 
     keyboard = [[KeyboardButton("/set_account", callback_data=Vote.LIKE),

@@ -20,4 +20,4 @@ settings_defaults = {
 
 prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
 location_search_url = "http://nominatim.openstreetmap.org/search/"
-data_retrieval_path = "./"
+data_retrieval_path = "./data/"

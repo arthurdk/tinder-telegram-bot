@@ -338,7 +338,7 @@ def message_handler(bot, update):
         try:
             # Create Tinder session
             session = create_pynder_session(update.message.text)
-            message = "Switching to %s account." % session.profile.name
+            message = "Switching to %s's account." % session.profile.name
             bot.sendMessage(chat_id=change_account_queries[sender], text=message)
             if sender != change_account_queries[sender]:
                 bot.sendMessage(chat_id=sender, text=message,

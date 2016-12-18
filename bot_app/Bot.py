@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import requests
 from telegram.ext import InlineQueryHandler
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, TelegramError, error
+from telegram import ChatAction, TelegramError, error
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler, Filters, MessageHandler
 from telegram.ext.dispatcher import run_async
 import logging
@@ -17,7 +17,6 @@ import bot_app.data as data
 import bot_app.prediction as prediction
 import bot_app.data_retrieval as data_retrieval
 import bot_app.keyboards as keyboards
-import threading
 import time
 import re
 
@@ -56,6 +55,7 @@ def set_location(bot, update, args):
             send_help(bot, chat_id, "set_location", "Please indicate coordinates or the name of a place")
             return
         else:
+            bot.sendChatAction(chat_id=chat_id, action=ChatAction.FIND_LOCATION)
             r = requests.get("{}{}?format=json&limit=1&bounded=0"
                              .format(location_search_url, ' '.join([str(x) for x in args])))
         try:
@@ -162,6 +162,7 @@ def start_vote(bot, job):
             conversation.set_is_voting(True)
             # Fetch nearby users
             retry = 0
+            bot.sendChatAction(chat_id=chat_id, action=ChatAction.UPLOAD_PHOTO)
             while retry < 3 and len(conversation.users) == 0:
                 conversation.refresh_users()
                 retry += 1
@@ -333,6 +334,12 @@ def message_handler(bot, update):
     # Check login
     elif sender in change_account_queries:
         try:
+            # Notify this is going to take some tike
+            if change_account_queries[sender] != sender:
+                bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
+
+            bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
+
             # Create Tinder session
             session = create_pynder_session(update.message.text)
             message = "Switching to %s account." % session.profile.name

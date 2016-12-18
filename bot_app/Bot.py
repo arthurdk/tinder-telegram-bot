@@ -133,7 +133,7 @@ def send_matches(bot, update):
                     if not is_msg_sent:
                         notify_start_private_chat(bot=bot,
                                                   chat_id=chat_id,
-                                                  incoming_message_id=update.message.message_id)
+                                                  incoming_message=update.message)
                         break
                     id += 1
                 except error.BadRequest:
@@ -182,7 +182,7 @@ def start_vote(bot, job):
                     msg = bot.sendPhoto(chat_id, photo=photos[0], caption=caption)
                     conversation.vote_msg = msg
                     # Prepare voting inline keyboard
-                    reply_markup = keyboards.get_vote_keyboard(conversation=conversation)
+                    reply_markup = keyboards.get_vote_keyboard(conversation=conversation, bot_name=bot.username)
                     message = get_question_match(conversation=conversation)
                     msg2 = bot.sendMessage(chat_id, text=message, reply_markup=reply_markup)
                     conversation.result_msg = msg2
@@ -209,7 +209,7 @@ def do_press_inline_button(bot, update, job_queue):
 
         if query.data == keyboards.InlineKeyboard.MORE:
             send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
-                             incoming_message_id=update.callback_query.message.message_id)
+                             incoming_message=update.callback_query.message)
         else:
             data.conversations[chat_id].current_votes[sender] = query.data
             # Schedule end of voting session
@@ -218,18 +218,18 @@ def do_press_inline_button(bot, update, job_queue):
                 alarm_vote(bot, chat_id, job_queue)
 
         # Send back updated inline keyboard
-        reply_markup = keyboards.get_vote_keyboard(data.conversations[chat_id])
+        reply_markup = keyboards.get_vote_keyboard(data.conversations[chat_id], bot_name=bot.username)
         bot.editMessageText(reply_markup=reply_markup,
                             chat_id=query.message.chat_id,
                             message_id=query.message.message_id,
                             text=get_question_match(conversation=data.conversations[chat_id]))
     # will catch when pressing same button twice # TODO fix the rotating icon
-    except TelegramError:
+    except TelegramError as e:
         pass
 
 
 @run_async
-def send_more_photos(private_chat_id, group_chat_id, bot, incoming_message_id):
+def send_more_photos(private_chat_id, group_chat_id, bot, incoming_message):
     """
     Function used for sending all pictures to private chat directly
     :param incoming_message_id:
@@ -251,7 +251,7 @@ def send_more_photos(private_chat_id, group_chat_id, bot, incoming_message_id):
                 if not is_msg_sent:
                     notify_start_private_chat(bot=bot,
                                               chat_id=group_chat_id,
-                                              incoming_message_id=incoming_message_id)
+                                              incoming_message=incoming_message)
                     break
 
         else:
@@ -276,7 +276,7 @@ def set_account(bot, update):
     if not is_msg_sent:
         notify_start_private_chat(bot=bot,
                                   chat_id=change_account_queries[sender],
-                                  incoming_message_id=update.message.message_id)
+                                  incoming_message=update.message)
     elif update.message.chat.type == "group":
         keyboard = keyboards.switch_private_chat_keyboard(bot.username)
         notify_send_token(bot=bot, is_group=True,

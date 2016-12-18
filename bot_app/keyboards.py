@@ -17,18 +17,20 @@ class InlineKeyboard:
 main_keyboard = ["Matches"]
 
 
-def get_vote_keyboard(conversation):
+def get_vote_keyboard(conversation, bot_name):
     global data
     likes, dislikes = conversation.get_stats()
     like_label = "❤️"
     dislike_label = "❌"
-
-    if not conversation.settings.get_setting("blind_mode").get_value():
+    blind_mode = conversation.settings.get_setting("blind_mode")
+    if not blind_mode:
         like_label += " (%d)" % likes
         dislike_label += " (%d)" % dislikes
 
     keyboard = [[InlineKeyboardButton(like_label, callback_data=InlineKeyboard.LIKE),
-                 InlineKeyboardButton("More pictures", callback_data=InlineKeyboard.MORE),
+                 InlineKeyboardButton("More pictures",
+                                      callback_data=InlineKeyboard.MORE,
+                                      ),
                  InlineKeyboardButton(dislike_label, callback_data=InlineKeyboard.DISLIKE)],
                 ]
     second_row = []
@@ -42,6 +44,7 @@ def get_vote_keyboard(conversation):
     second_row.append(InlineKeyboardButton("Matches",
                                            switch_inline_query_current_chat="matches " + str(conversation.group_id)))
     keyboard.append(second_row)
+    keyboard.append([InlineKeyboardButton(messages['switch_private'], url="https://telegram.me/%s?start=" % bot_name)])
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -52,7 +55,7 @@ def switch_private_chat_keyboard(bot_name):
 
 
 def switch_group_keyboard():
-    keyboard = [[ InlineKeyboardButton(messages["back_group"], switch_inline_query="")]]
+    keyboard = [[InlineKeyboardButton(messages["back_group"], switch_inline_query="")]]
     return InlineKeyboardMarkup(keyboard)
 
 

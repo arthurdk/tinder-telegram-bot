@@ -53,7 +53,7 @@ messages["start_chat"] = "Please start a private conversation with me first. Fol
 messages["send_token"] = "Please send me your authentication token in our private conversation %s "
 messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"
 messages["unblocking_successful"] = "Sending and polling were unblocked."
-messages["switch_private"] = "Switch to private chat"
+messages["switch_private"] = "🔒 Switch to private chat"
 messages["back_group"] = "Switch to group"
 messages["ask_for_token"] = "Please, send me your facebook authentication token\nNote: this token " \
                             "is only for accessing your Tinder account, your Facebook account is safe."
@@ -147,9 +147,9 @@ def send_private_photo(bot, user_id, url, caption):
             return False
 
 
-def notify_start_private_chat(bot, chat_id, incoming_message_id=None):
-    if incoming_message_id is not None:
-        bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name, reply_to_message_id=incoming_message_id)
+def notify_start_private_chat(bot, chat_id, incoming_message=None):
+    if incoming_message is not None and incoming_message.from_user.username != bot.username:
+        bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name, reply_to_message_id=incoming_message.message_id)
     else:
         bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name)
 

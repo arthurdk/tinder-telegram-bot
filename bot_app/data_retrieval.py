@@ -1,6 +1,5 @@
 import bot_app.settings as settings
 import os as os
-from bs4 import BeautifulSoup
 import urllib3.request
 import urllib3.exceptions
 
@@ -40,8 +39,6 @@ def is_instagram_private(instagram_user) -> bool:
         result = http.request('GET', url)
         if result.status != 200:
             return True
-        soup = BeautifulSoup(result.data, 'html.parser')
-        content = soup.getText().lower()
         if "\"is_private\": false" not in str(result.data):
             return True
     except urllib3.exceptions.HTTPError as e:

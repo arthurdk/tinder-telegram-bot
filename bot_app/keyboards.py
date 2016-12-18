@@ -1,5 +1,5 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
-
+from bot_app.messages import *
 
 # Homemade enum
 class InlineKeyboard:
@@ -45,9 +45,14 @@ def get_vote_keyboard(conversation):
     return InlineKeyboardMarkup(keyboard)
 
 
-def change_chat_keyboard(txt):
-    keyboard = [[InlineKeyboardButton(txt, switch_inline_query="")]]
+def switch_private_chat_keyboard(bot_name):
+    keyboard = [[InlineKeyboardButton(messages['switch_private'], url="https://telegram.me/%s?start=" % bot_name)]]
 
+    return InlineKeyboardMarkup(keyboard)
+
+
+def switch_group_keyboard():
+    keyboard = [[ InlineKeyboardButton(messages["back_group"], switch_inline_query="")]]
     return InlineKeyboardMarkup(keyboard)
 
 

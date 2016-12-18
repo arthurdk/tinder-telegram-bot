@@ -278,7 +278,7 @@ def set_account(bot, update):
                                   chat_id=change_account_queries[sender],
                                   incoming_message_id=update.message.message_id)
     elif update.message.chat.type == "group":
-        keyboard = keyboards.change_chat_keyboard(messages["switch_private"])
+        keyboard = keyboards.switch_private_chat_keyboard(bot.username)
         notify_send_token(bot=bot, is_group=True,
                           chat_id=change_account_queries[sender],
                           reply_to_message_id=update.message.message_id, group_name=group_name,
@@ -345,8 +345,10 @@ def message_handler(bot, update):
             message = "Switching to %s account." % session.profile.name
             bot.sendMessage(chat_id=change_account_queries[sender], text=message)
             if sender != change_account_queries[sender]:
-                bot.sendMessage(chat_id=sender, text=message,
-                                reply_markup=keyboards.change_chat_keyboard(messages["back_group"]))
+                group_name = bot.getChat(chat_id=change_account_queries[sender]).title
+                bot.sendMessage(chat_id=sender,
+                                text=message,
+                                reply_markup=keyboards.switch_group_keyboard())
             # Create conversation
             conversation = Conversation(change_account_queries[sender], session)
             data.conversations[change_account_queries[sender]] = conversation

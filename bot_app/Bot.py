@@ -15,6 +15,7 @@ from bot_app.messages import *
 import bot_app.data as data
 import bot_app.prediction as prediction
 import bot_app.data_retrieval as data_retrieval
+from bot_app.keyboards import *
 import threading
 import time
 import re
@@ -205,27 +206,6 @@ def start_vote(bot, job):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
-def get_vote_keyboard(conversation):
-    global data
-    likes, dislikes = conversation.get_stats()
-    like_label = "❤️"
-    dislike_label = "❌"
-
-    if not conversation.settings.get_setting("blind_mode").get_value():
-        like_label += " (%d)" % likes
-        dislike_label += " (%d)" % dislikes
-
-    keyboard = [[InlineKeyboardButton(like_label, callback_data=Vote.LIKE),
-                 InlineKeyboardButton("More pictures", callback_data=Vote.MORE),
-                 InlineKeyboardButton(dislike_label, callback_data=Vote.DISLIKE)],
-                [InlineKeyboardButton("Inline pictures",
-                                      switch_inline_query_current_chat="pictures "+str(conversation.group_id)),
-                 InlineKeyboardButton("Matches",
-                                      switch_inline_query_current_chat="matches " + str(conversation.group_id))]]
-
-    return InlineKeyboardMarkup(keyboard)
-
-
 def do_vote(bot, update, job_queue):
     global data
     chat_id = update.callback_query.message.chat_id
@@ -306,7 +286,12 @@ def alarm_vote(bot, chat_id, job_queue):
     global data
 
     conversation = data.conversations[chat_id]
-    time.sleep(conversation.timeout)
+    min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
+
+    # Wait for the number of required votes
+    while len(conversation.current_votes) < min_votes and len(conversation.current_votes) < 5:
+        time.sleep(conversation.timeout)
+
     msg = conversation.result_msg
     likes, dislikes = conversation.get_stats()
     message = "%d likes, %d dislikes " % (likes, dislikes)
@@ -367,6 +352,9 @@ def message_handler(bot, update):
 
 def send_about(bot, update):
     chat_id = update.message.chat_id
+    """
+    bot.sendMessage(chat_id=chat_id, text="test", reply_markup=get_main_keyboard())
+    """
     message = messages["about"]
     bot.sendMessage(chat_id, text=message)
 
@@ -431,8 +419,6 @@ def main():
 
     updater.start_polling()
     updater.idle()
-
-
 
 
 if __name__ == "__main__":

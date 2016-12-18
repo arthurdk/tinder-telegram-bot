@@ -51,7 +51,7 @@ messages["setting_updated"] = "Setting updated."
 messages["about"] = "https://github.com/arthurdk/tinder-telegram-bot"
 messages["start_chat"] = "Please start a private conversation with me first. Follow the link: %s"
 messages["send_token"] = "Please send me your authentication token in our private conversation %s "
-messages["vote_question"] = "So what do you think of %s? (%d votes)"
+messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"
 messages["unblocking_successful"] = "Sending and polling were unblocked."
 
 # Error messages
@@ -71,7 +71,7 @@ def debug(bot, chat_id, message):
 
 def get_question_match(conversation):
     name = " %s (%d y.o)" % (conversation.current_user.name, conversation.current_user.age)
-    question = messages["vote_question"] % (name, len(conversation.get_votes()))
+    question = messages["vote_question"] % (name, len(conversation.get_votes()), len(conversation.current_votes))
     return question
 
 

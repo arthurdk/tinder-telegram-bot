@@ -10,7 +10,7 @@ class Settings:
     values["chat_mode"] = ["off", "owner", "all"]
     values["max_poll_range_size"] = Range(1, 100)
     values["max_send_range_size"] = Range(1, 10)
-    values["min_votes_before_timeout"] = Range(1, 100) # Arthur it's a static limit now ;)
+    values["min_votes_before_timeout"] = Range(1, 5) # Arthur it's a static limit now ;)
     values["min_timeout"] = Range(0, 3600)
     values["max_timeout"] = Range(0, 3600)
     values["send_block_time"] = Range(0, 3600)
@@ -20,11 +20,11 @@ class Settings:
 
     helps = {}
     helps["chat_mode"] = "Different modes for chatting. Off means /msg and /poll_msgs are disabled. " \
-                         "Owner means, only the owner of the currenct account can use /msg, " \
+                         "Owner means, only the owner of the current account can use /msg, " \
                          "everybody can use /poll_msgs. All means everybody can /msg and /poll_msgs."
     helps["max_poll_range_size"] = "Maximum size of a range for the /poll_msgs command."
     helps["max_send_range_size"] = "Maximum size of a range for the /msg command."
-    helps["min_votes_before_timeout"] = "Not implemented."
+    helps["min_votes_before_timeout"] = "Number of vote required to end the session. (Limited to five)"
     helps["min_timeout"] = "The minimum value for the timeout the users can set."
     helps["max_timeout"] = "The maximum value for the timeout the users can set."
     helps["send_block_time"] = "The block time after a /msg command. In this time, nobody can send a message. " \

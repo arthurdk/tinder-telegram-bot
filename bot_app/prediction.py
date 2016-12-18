@@ -10,9 +10,13 @@ def do_prediction(bot, job):
     if settings.prediction_backend is not None:
         chat_id, user_id, msg_id = job.context
         hot, nope = settings.prediction_backend.predict(user_id=user_id)
-        if hot is not None and nope is not None:
+        if is_prediction_valid(hot, nope):
             bot.sendMessage(chat_id=chat_id, text="My two cents: \nHot:" + str(hot) + "\nNope:" + str(nope),
                             reply_to_message_id=msg_id)
+
+
+def is_prediction_valid(hot, nope):
+    return hot is not None and nope is not None and hot != 0 and nope != 0
 
 
 class BasePredictor(ABC):

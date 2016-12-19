@@ -25,6 +25,7 @@ class Conversation:
         self.block_polling_until = 0
         self.block_sending_until = 0
         self.cur_user_insta_private = None
+        self.current_mod_candidate = None
 
     def refresh_users(self):
         self.users = self.session.nearby_users()

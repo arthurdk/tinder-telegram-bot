@@ -265,7 +265,7 @@ def do_press_inline_button(bot, update, job_queue):
                                                        bot_name=bot.username)
             current_vote = len(conversation.get_votes())
             max_vote = conversation.settings.get_setting("min_votes_before_timeout")
-            caption = get_caption_match(conversation.current_user, current_vote, max_vote)
+            caption = get_caption_match(conversation.current_user, current_vote, max_vote, bio=True)
             bot.editMessageCaption(chat_id=chat_id,
                                    message_id=query.message.message_id,
                                    reply_markup=reply_markup,

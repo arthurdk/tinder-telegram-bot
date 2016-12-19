@@ -53,4 +53,4 @@ class String(BaseSetting):
 
     def __str__(self):
         formatted_value = ["`" + value + "`" for value in self.valid_values]
-        return ",".join(formatted_value)
+        return "[" + (",".join(formatted_value)) + "]"

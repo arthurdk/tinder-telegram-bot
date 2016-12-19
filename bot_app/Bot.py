@@ -20,6 +20,7 @@ import bot_app.keyboards as keyboards
 import time
 import re
 import traceback
+import math
 
 # import peewee as pw
 from bot_app.settings import location_search_url
@@ -332,6 +333,14 @@ def set_account(bot, update):
                           reply_markup=keyboard)
 
 
+def dynamic_timeout_formular(min_votes, votes_fraction):
+    result = 1
+    result += (1 - votes_fraction) * math.log2(min_votes) # Linear part makes timeout rise
+    result += min_votes * (min_votes**((1 - votes_fraction)**3) - 1) # Exponential part to punish really low vote counts
+    result += (40 - 40**(votes_fraction)) / min_votes**2 # Punish missing votes harder if min_votes is low
+    return result
+
+
 def wait_for_vote_timeout(conversation):
     min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
     timeout_mode = conversation.settings.get_setting(setting="timeout_mode")
@@ -350,7 +359,7 @@ def wait_for_vote_timeout(conversation):
             votes_fraction = len(conversation.current_votes) / min_votes
             current_time = time.time()
 
-            if current_time > starting_time + conversation.timeout / votes_fraction:
+            if current_time > starting_time + conversation.timeout  * dynamic_timeout_formular(min_votes, votes_fraction):
                 break
 
     if timeout_mode == "required_votes":

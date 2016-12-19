@@ -81,7 +81,7 @@ class OneLinerPrediction(BasePrediction):
                                   "If you were in my life you were a bug"
                                   ],
                 Categories.SUPER_NOPE: ["What a whale", "Run you fools",
-                                        "Even with those filters, you're still ugly"]
+                                        "Even with those filters, you're still ugly", "Burn it with fire"]
                 }
         idx = randint(0, len(line[cat]) - 1)
         return line[cat][idx]
@@ -116,7 +116,7 @@ class GuggyPrediction(BasePrediction):
             if response.status_code == 200:
                 result = response.json()
                 is_gif = randint(0, 1)
-                if False:
+                if is_gif == 0:
                     content = result["animated"]
                     length = len(content)
                     idx = randint(0, length - 1)
@@ -143,17 +143,18 @@ one_liner_pred = OneLinerPrediction()
 
 def create_sender():
     import bot_app.settings as settings
-    # Not the best implentation ever, feel free to change
+    # Not the best implementation ever, feel free to change
     senders = {20: emoji_pred, 60: one_liner_pred}
     if settings.guggy_api_key is not None:
         senders[120] = GuggyPrediction(sentence_providers=[emoji_pred, one_liner_pred])
-    sum = 0
+    max = 0
     for key, value in senders.items():
-        sum += key
-    result = randint(0, sum)
+        max = max if max > key else key
+    result = randint(0, max)
     for key, sender in senders.items():
         if result <= key:
             return sender
+    # Should never happen
     return BasePrediction()
 
 

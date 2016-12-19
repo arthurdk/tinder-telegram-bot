@@ -18,7 +18,7 @@ settings_defaults = {
     "timeout_mode": "dynamic"
 }
 
-guggy_api_key = None
+guggy_api_key = None # Get your key on their website
 prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
 location_search_url = "http://nominatim.openstreetmap.org/search/"
 data_retrieval_path = "./data/"

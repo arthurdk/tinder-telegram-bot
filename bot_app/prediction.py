@@ -38,13 +38,13 @@ class EmojiPrediction(BasePrediction):
     @staticmethod
     def get_sentence(cat):
         # Would be nice to load from file
-        emoji = {Categories.VERY_HOT: ["❤️", "😍", "👌", "🍆💦😮"],
-                 Categories.HOT: ["😚"],
+        emoji = {Categories.VERY_HOT: ["❤️", "😍", "🍆💦😮", "💓", "🔞"],
+                 Categories.HOT: ["😚", "🌡", "👌"],
                  Categories.LIKABLE: ["👍", "😙"],
                  Categories.UNSURE: ["🤔"],
                  Categories.DISLIKABLE: ["👎"],
                  Categories.NOPE: ["🙈", "😐", "😦", "🐐"],
-                 Categories.SUPER_NOPE: ["😰"]}
+                 Categories.SUPER_NOPE: ["😰", "💩", "😷"]}
 
         idx = randint(0, len(emoji[cat]) - 1)
         return emoji[cat][idx]
@@ -94,7 +94,8 @@ class OneLinerPrediction(BasePrediction):
                 Categories.LIKABLE: ["Nice.",
                                      "I hope she has a good personality.",
                                      "What about we meet and get to know each other better?",
-                                     "I think you would fit me good."],
+                                     "I think you would fit me good.",
+                                     "YOLO"],
 
                 Categories.UNSURE: ["Well I don't really know.",
                                     "Unsure.",

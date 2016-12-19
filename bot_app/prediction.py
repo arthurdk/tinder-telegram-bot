@@ -143,10 +143,18 @@ one_liner_pred = OneLinerPrediction()
 
 def create_sender():
     import bot_app.settings as settings
-    senders = [BasePrediction(), emoji_pred, one_liner_pred]
+    # Not the best implentation ever, feel free to change
+    senders = {20: emoji_pred, 60: one_liner_pred}
     if settings.guggy_api_key is not None:
-        senders.append(GuggyPrediction(sentence_providers=[emoji_pred, one_liner_pred]))
-    return senders
+        senders[120] = GuggyPrediction(sentence_providers=[emoji_pred, one_liner_pred])
+    sum = 0
+    for key, value in senders.items():
+        sum += key
+    result = randint(0, sum)
+    for key, sender in senders.items():
+        if result <= key:
+            return sender
+    return BasePrediction()
 
 
 def choose_category(hot):
@@ -168,9 +176,7 @@ def choose_category(hot):
 
 def send_prediction(bot, chat_id, hot, nope, reply_to_message_id):
     cat = choose_category(hot=hot)
-    senders = create_sender()
-    idx = randint(0, len(senders) - 1)
-    choosen_sender = senders[idx]
+    choosen_sender = create_sender()
     choosen_sender.send_prediction(bot=bot, chat_id=chat_id, hot=hot,
                                    nope=nope,
                                    reply_to_message_id=reply_to_message_id,

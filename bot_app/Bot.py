@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
+
 import requests
 from telegram.ext import InlineQueryHandler
 from telegram import ChatAction, TelegramError, error
@@ -8,7 +10,10 @@ from telegram.ext.dispatcher import run_async
 import logging
 import pynder
 import time
-# from bot_app.db_model import Conversation, db
+
+import bot_app.db_model as db
+import peewee as pw
+
 from bot_app.model import Conversation
 import bot_app.chat as chat
 import bot_app.admin as admin
@@ -17,13 +22,11 @@ import bot_app.data as data
 import bot_app.prediction as prediction
 import bot_app.data_retrieval as data_retrieval
 import bot_app.keyboards as keyboards
-import time
 import re
 import traceback
 import math
 import bot_app.inline as inline
 
-# import peewee as pw
 from bot_app.settings import location_search_url
 
 logging.basicConfig(level=logging.DEBUG,
@@ -233,7 +236,7 @@ def set_account(bot, update):
 
 def dynamic_timeout_formular(min_votes, votes_fraction):
     if votes_fraction >= 1:
-        return 1 / votes_fraction
+        return 1 / votes_fraction # Reduce timeout if more people than necessary voted
 
     result = 1
     result += (1 - votes_fraction) * math.log2(min_votes) # Linear part makes timeout rise
@@ -305,7 +308,6 @@ def alarm_vote(bot, chat_id, job_queue):
 
 def message_handler(bot, update):
     global data
-    global admin
     global change_account_queries
 
     chat_id = update.message.chat_id
@@ -341,8 +343,53 @@ def message_handler(bot, update):
             bot.sendMessage(chat_id, text=message)
 
     # Ignore reply to the bot in groups
-    elif change_account_queries[sender] == sender:
-        update.message.reply_text(error_messages["unknown_command"])
+    elif sender in change_account_queries.keys():
+        if change_account_queries[sender] == sender:
+            update.message.reply_text(error_messages["unknown_command"])
+
+    elif text.strip() == "YES":
+        if chat_id not in data.make_me_mod_queries.keys():
+            return
+
+        group_id = data.make_me_mod_queries[chat_id]
+        del data.make_me_mod_queries[chat_id]
+
+        if group_id not in data.conversations.keys():
+            send_error(bot=bot, chat_id=group_id, name="account_not_setup")
+            return
+
+        conversation = data.conversations[group_id]
+        mod_candidate = conversation.current_mod_candidate
+        conversation.current_mod_candidate = None
+
+        mod_candidate_entry = db.User.get_or_create(id = mod_candidate.id)[0]
+        conversation_entry = db.Conversation.get_or_create(id = group_id)[0]
+
+        mod_candidate_id = mod_candidate_entry.id
+        conversation_entry_id = conversation_entry.id
+
+        query = db.IsMod.select().where((db.IsMod.user == mod_candidate_id) & (db.IsMod.group == conversation_entry_id))
+
+        if not query.exists():
+            db.IsMod.create(user = mod_candidate_entry, group = conversation_entry)
+            bot.sendMessage(chat_id, text="Mod added.")
+            # Inform group to notify that a new user can become a candidate
+            bot.sendMessage(group_id, text="Mod " + mod_candidate.name + " added.")
+        else:
+            bot.sendMessage(chat_id, text="User is already a mod.")
+            bot.sendMessage(group_id, text="User " + mod_candidate.name + " was already a mod.")
+
+    # Abort all running transactions between the users and the bot
+    else:
+        if chat_id in data.make_me_mod_queries.keys():
+            group_id = data.make_me_mod_queries[chat_id]
+            del data.make_me_mod_queries[chat_id]
+            bot.sendMessage(chat_id, text="Mod request denied.")
+
+            if group_id in data.conversations.keys():
+                bot.sendMessage(group_id, text="User " + data.conversations[group_id].current_mod_candidate.name
+                                               + " was not made a mod.")
+                data.conversations[group_id].current_mod_candidate = None
 
 
 def send_about(bot, update):
@@ -379,14 +426,13 @@ def custom_command_handler(bot, update):
 
 
 def main():
-    """
-    db.connect()
+    db.db.connect()
 
     try:
-        db.create_tables([Conversation])
+        db.db.create_tables([db.Conversation, db.User, db.IsMod])
     except pw.OperationalError:
         pass
-    """
+
     updater = Updater(settings.KEY)
 
     dispatcher = updater.dispatcher
@@ -413,6 +459,9 @@ def main():
     dispatcher.add_handler(CommandHandler('set_setting', admin.set_setting, pass_args=True))
     dispatcher.add_handler(CommandHandler('list_settings', admin.list_settings))
     dispatcher.add_handler(CommandHandler('help_settings', admin.help_settings))
+
+    # Moderators
+    dispatcher.add_handler(CommandHandler('make_me_a_mod', admin.make_me_a_mod))
 
     inline_caps_handler = InlineQueryHandler(chat.inline_preview)
     dispatcher.add_handler(inline_caps_handler)

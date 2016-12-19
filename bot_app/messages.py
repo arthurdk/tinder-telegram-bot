@@ -14,6 +14,7 @@ help_messages["poll_unanswered"] = "Usage of `/poll_unanswered`:\n" \
                                    "`/poll_unanswered` <match-id> <n>\nPolls the last n messages from the match. Shows them only if the last message is not from you. You should use it with an id range. Without arguments or with first argument = 'last', the max last matches are polled."
 help_messages["set_location"] = "Usage of /location:\n/set_location <place name> or <latitude> <longitude\nYou can also just use telegram to send a location to the group."
 help_messages["set_setting"] = "Usage of `/set_setting`:\n`/set_setting` <setting> <value>\nCommand may only be used by account owner."
+help_messages["make_me_a_mod"] = "Usage of `/set_mod`:\n`/set_mod` <user> <True|False>\nChange moderator status of a user."
 
 # If you modify this sure the markdown is compatible with telegram !
 help_messages["help"] = "*Usage of the bot:*\n" \

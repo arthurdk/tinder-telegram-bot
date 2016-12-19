@@ -2,6 +2,7 @@ from bot_app.messages import *
 from bot_app.value_types import *
 import bot_app.data as data
 import bot_app.settings as settings
+from telegram.ext.dispatcher import run_async
 
 
 class Setting:
@@ -145,3 +146,28 @@ def set_setting(bot, update, args):
         send_message(bot, chat_id, "setting_updated")
     else:
         send_message(bot, chat_id, "Unknown value for setting: " + str(key) + " = " + str(value))
+
+
+@run_async
+def make_me_a_mod(bot, update):
+    global data
+
+    chat_id = update.message.chat_id
+    sender = update.message.from_user
+    sender_name = update.message.from_user.name
+    group_title = update.message.chat.title
+
+    if chat_id not in data.conversations:
+        send_error(bot, chat_id, "account_not_setup")
+        return
+
+    conversation = data.conversations[chat_id]
+
+    if conversation.current_mod_candidate is None and conversation.owner not in data.make_me_mod_queries.keys():
+        send_custom_message(bot, conversation.owner, "Do you want to make " + sender_name + " a mod in chat " +
+                                                     group_title + "?\nType YES in capitalized letters to agree. Type "
+                                                      "anything else to disagree.")
+        conversation.current_mod_candidate = sender
+        data.make_me_mod_queries[conversation.owner] = chat_id
+    else:
+        send_custom_message(bot, chat_id, sender_name + " There is already a mod candidate.")

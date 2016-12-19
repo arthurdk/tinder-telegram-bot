@@ -1,7 +1,7 @@
 from bot_app.prediction import LoveByHuguesVerlin
 
 KEY = "KEY"
-DB_NAME = 'tinderbot.sqlite3'
+DB_NAME = './data/tinderbot.sqlite3'
 DEBUG_MODE = False
 
 settings_defaults = {

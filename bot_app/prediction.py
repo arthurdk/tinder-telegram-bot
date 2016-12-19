@@ -8,6 +8,7 @@ from telegram import ChatAction
 from collections import OrderedDict
 from random import randint
 from enum import Enum
+import bot_app.settings as settings
 
 
 class Categories(Enum):

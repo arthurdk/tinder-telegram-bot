@@ -353,7 +353,7 @@ def wait_for_vote_timeout(conversation):
     starting_time = -1
 
     # Wait for the number of required votes
-    while len(conversation.current_votes) < min_votes and len(conversation.current_votes) < 5 \
+    while (len(conversation.current_votes) < min_votes and len(conversation.current_votes) < 5) \
             or timeout_mode == "dynamic":
         if len(conversation.current_votes) > 0 and starting_time == -1:
             starting_time = time.time()

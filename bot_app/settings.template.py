@@ -17,7 +17,7 @@ settings_defaults = {
     "matches_cache_time": "60",
     "timeout_mode": "dynamic"
 }
-
+guggy_api_key = None
 prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
 location_search_url = "http://nominatim.openstreetmap.org/search/"
 data_retrieval_path = "./data/"

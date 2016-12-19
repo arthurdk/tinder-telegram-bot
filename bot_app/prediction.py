@@ -1,8 +1,180 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-/s
 from abc import ABC, abstractmethod
 import json
 import requests
 from telegram.ext.dispatcher import run_async
 from telegram import ChatAction
+
+from random import randint
+from enum import Enum
+
+
+class Categories(Enum):
+    VERY_HOT = 1
+    HOT = 2
+    LIKABLE = 3
+    UNSURE = 4
+    DISLIKABLE = 5
+    NOPE = 6
+    SUPER_NOPE = 7
+
+
+class BasePrediction:
+    def __init__(self):
+        pass
+
+    def send_prediction(self, bot, chat_id, hot, nope, cat, reply_to_message_id):
+        bot.sendMessage(chat_id=chat_id,
+                        text="My two cents: \nHot: " + str(hot) + "\nNope: " + str(nope),
+                        reply_to_message_id=reply_to_message_id)
+
+
+class EmojiPrediction(BasePrediction):
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def get_sentence(cat):
+        # Would be nice to load from file
+        emoji = {Categories.VERY_HOT: ["❤️", "😍", "👌"],
+                 Categories.HOT: ["😚"],
+                 Categories.LIKABLE: ["👍", "😙"],
+                 Categories.UNSURE: ["🤔"],
+                 Categories.DISLIKABLE: ["👎"],
+                 Categories.NOPE: ["🙈", "😐", "😦"],
+                 Categories.SUPER_NOPE: ["😰"]}
+
+        idx = randint(0, len(emoji[cat]) - 1)
+        return emoji[cat][idx]
+
+    def send_prediction(self, bot, chat_id, hot, nope, cat, reply_to_message_id):
+        bot.sendMessage(chat_id=chat_id,
+                        text=self.get_sentence(cat=cat),
+                        reply_to_message_id=reply_to_message_id)
+
+
+class TwoLinersPrediction(BasePrediction):
+    def __init__(self):
+        super().__init__()
+
+        # Example sending a one line of cat 1 even though really cat is 7
+        # and then sending something like "Not just kidding"
+
+
+class OneLinerPrediction(BasePrediction):
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def get_sentence(cat):
+        # Would be nice to load from file
+        line = {Categories.VERY_HOT: ["Dat ass",
+                                      "These eyes make me undress",
+                                      ],
+                Categories.HOT: ["I like your style",
+                                 "Do you want to come to my bed?"],
+                Categories.LIKABLE: ["Nice."],
+                Categories.UNSURE: ["Well I don't really know.", "Unsure."],
+                Categories.DISLIKABLE: ["Well, maybe not."],
+                Categories.NOPE: ["I would not implement you as a feature into my life",
+                                  "If you were in my life you were a bug"
+                                  ],
+                Categories.SUPER_NOPE: ["What a whale", "Run you fools",
+                                        "Even with those filters, you're still ugly"]
+                }
+        idx = randint(0, len(line[cat]) - 1)
+        return line[cat][idx]
+
+    def send_prediction(self, bot, chat_id, hot, nope, cat, reply_to_message_id):
+        bot.sendMessage(chat_id=chat_id,
+                        text=self.get_sentence(cat=cat),
+                        reply_to_message_id=reply_to_message_id)
+
+
+class GuggyPrediction(BasePrediction):
+    def __init__(self, sentence_providers):
+        super().__init__()
+        self.guggy_api = "http://text2gif.guggy.com/v2/guggify"
+        self.sentence_providers = sentence_providers
+
+    def get_sentence(self, cat):
+        idx = randint(0, len(self.sentence_providers) - 1)
+        return self.sentence_providers[idx].get_sentence(cat)
+
+    def send_prediction(self, bot, chat_id, hot, nope, cat, reply_to_message_id):
+        import bot_app.settings as settings
+        if settings.guggy_api_key is not None:
+            # First launch api request
+            headers = {
+                "Content-Type": "application/json",
+                "apiKey": settings.guggy_api_key,
+            }
+            payload = "{\"sentence\": \"" + self.get_sentence(cat) + "\"}"
+            response = requests.post(self.guggy_api, headers=headers, data=payload.encode('utf-8'))
+
+            if response.status_code == 200:
+                result = response.json()
+                is_gif = randint(0, 1)
+                if False:
+                    content = result["animated"]
+                    length = len(content)
+                    idx = randint(0, length - 1)
+                    url = content[idx]["gif"]["original"]["url"]
+                    bot.sendChatAction(chat_id=chat_id, action=ChatAction.UPLOAD_PHOTO)
+                    bot.sendDocument(chat_id=chat_id, document=url,
+                                     reply_to_message_id=reply_to_message_id)
+
+                else:
+                    content = result["sticker"]
+                    length = len(content)
+                    idx = randint(0, length - 1)
+                    url = content[idx]["webp"]["original"]["url"]
+
+                    bot.sendChatAction(chat_id=chat_id, action=ChatAction.UPLOAD_VIDEO)
+                    bot.sendVideo(chat_id=chat_id,
+                                  video=url,
+                                  reply_to_message_id=reply_to_message_id)
+
+
+emoji_pred = EmojiPrediction()
+one_liner_pred = OneLinerPrediction()
+
+
+def create_sender():
+    import bot_app.settings as settings
+    senders = [BasePrediction(), emoji_pred, one_liner_pred]
+    if settings.guggy_api_key is not None:
+        senders.append(GuggyPrediction(sentence_providers=[emoji_pred, one_liner_pred]))
+    return senders
+
+
+def choose_category(hot):
+    if hot > 0.9:
+        return Categories.VERY_HOT
+    elif hot > 0.75:
+        return Categories.HOT
+    elif hot > 0.55:
+        return Categories.LIKABLE
+    elif hot > 0.45:
+        return Categories.UNSURE
+    elif hot > 0.25:
+        return Categories.DISLIKABLE
+    elif hot > 0.1:
+        return Categories.NOPE
+    else:
+        return Categories.SUPER_NOPE
+
+
+def send_prediction(bot, chat_id, hot, nope, reply_to_message_id):
+    cat = choose_category(hot=hot)
+    senders = create_sender()
+    idx = randint(0, len(senders) - 1)
+    choosen_sender = senders[idx]
+    choosen_sender.send_prediction(bot=bot, chat_id=chat_id, hot=hot,
+                                   nope=nope,
+                                   reply_to_message_id=reply_to_message_id,
+                                   cat=cat)
 
 
 @run_async
@@ -13,8 +185,7 @@ def do_prediction(bot, job):
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         hot, nope = settings.prediction_backend.predict(user_id=user_id)
         if is_prediction_valid(hot, nope):
-            bot.sendMessage(chat_id=chat_id, text="My two cents: \nHot:" + str(hot) + "\nNope:" + str(nope),
-                            reply_to_message_id=msg_id)
+            send_prediction(bot=bot, chat_id=chat_id, hot=hot, nope=nope, reply_to_message_id=msg_id)
 
 
 def is_prediction_valid(hot, nope):

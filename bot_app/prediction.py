@@ -5,7 +5,7 @@ import json
 import requests
 from telegram.ext.dispatcher import run_async
 from telegram import ChatAction
-
+from collections import OrderedDict
 from random import randint
 from enum import Enum
 
@@ -144,9 +144,11 @@ one_liner_pred = OneLinerPrediction()
 def create_sender():
     import bot_app.settings as settings
     # Not the best implementation ever, feel free to change
-    senders = {20: emoji_pred, 60: one_liner_pred}
+    senders = OrderedDict()
+    senders[20] = emoji_pred
+    senders[40] = one_liner_pred
     if settings.guggy_api_key is not None:
-        senders[120] = GuggyPrediction(sentence_providers=[emoji_pred, one_liner_pred])
+        senders[100] = GuggyPrediction(sentence_providers=[emoji_pred, one_liner_pred])
     max = 0
     for key, value in senders.items():
         max = max if max > key else key

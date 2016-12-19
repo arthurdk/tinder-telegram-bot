@@ -1,6 +1,6 @@
 from telegram.ext.dispatcher import run_async
-from bot_app.Bot import *
-
+from bot_app import messages, keyboards
+from telegram import TelegramError
 
 @run_async
 def send_instagram_urls(private_chat_id, group_chat_id, bot, incoming_message):
@@ -16,22 +16,24 @@ def send_instagram_urls(private_chat_id, group_chat_id, bot, incoming_message):
                     break
                 caption = " %s (%d/%d) " % (user.name, idx + 1, max_idx)
 
-                is_msg_sent = send_private_photo(caption=caption, bot=bot, url=photo['image'], user_id=private_chat_id)
+                is_msg_sent = messages.send_private_photo(caption=caption, bot=bot, url=photo['image'],
+                                                          user_id=private_chat_id)
 
                 if not is_msg_sent:
-                    notify_start_private_chat(bot=bot,
-                                              chat_id=group_chat_id,
-                                              incoming_message=incoming_message)
+                    messages.notify_start_private_chat(bot=bot,
+                                                       chat_id=group_chat_id,
+                                                       incoming_message=incoming_message)
                     break
 
         else:
             message = "There is not vote going on right now."
             bot.sendMessage(private_chat_id, text=message)
     else:
-        send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
+        messages.send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
 
 
 def do_press_inline_button(bot, update, job_queue):
+    from bot_app import Bot
     global data
     try:
         chat_id = update.callback_query.message.chat_id
@@ -53,7 +55,7 @@ def do_press_inline_button(bot, update, job_queue):
             # Schedule end of voting session
             if not data.conversations[chat_id].is_alarm_set:
                 data.conversations[chat_id].is_alarm_set = True
-                alarm_vote(bot, chat_id, job_queue)
+                Bot.alarm_vote(bot, chat_id, job_queue)
 
         # Send back updated inline keyboard
         if new_vote:
@@ -61,7 +63,7 @@ def do_press_inline_button(bot, update, job_queue):
                                                        bot_name=bot.username)
             current_vote = len(conversation.get_votes())
             max_vote = conversation.settings.get_setting("min_votes_before_timeout")
-            caption = get_caption_match(conversation.current_user, current_vote, max_vote, bio=True)
+            caption = messages.get_caption_match(conversation.current_user, current_vote, max_vote, bio=True)
             bot.editMessageCaption(chat_id=chat_id,
                                    message_id=query.message.message_id,
                                    reply_markup=reply_markup,
@@ -90,16 +92,16 @@ def send_more_photos(private_chat_id, group_chat_id, bot, incoming_message):
             for idx, photo in enumerate(photos):
                 caption = " %s (%d/%d) " % (data.conversations[group_chat_id].current_user.name, idx + 1, len(photos))
 
-                is_msg_sent = send_private_photo(bot=bot, caption=caption, url=photo, user_id=private_chat_id)
+                is_msg_sent = messages.send_private_photo(bot=bot, caption=caption, url=photo, user_id=private_chat_id)
 
                 if not is_msg_sent:
-                    notify_start_private_chat(bot=bot,
-                                              chat_id=group_chat_id,
-                                              incoming_message=incoming_message)
+                    messages.notify_start_private_chat(bot=bot,
+                                                       chat_id=group_chat_id,
+                                                       incoming_message=incoming_message)
                     break
 
         else:
             message = "There is not vote going on right now."
             bot.sendMessage(private_chat_id, text=message)
     else:
-        send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
+        messages.send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")

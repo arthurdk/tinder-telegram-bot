@@ -17,6 +17,8 @@ settings_defaults = {
     "matches_cache_time": "60",
     "timeout_mode": "dynamic"
 }
+
+# Get your key on their website
 guggy_api_key = None
 prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
 location_search_url = "http://nominatim.openstreetmap.org/search/"

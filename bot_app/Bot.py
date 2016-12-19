@@ -4,7 +4,7 @@
 
 import requests
 from telegram.ext import InlineQueryHandler
-from telegram import ChatAction, TelegramError, error
+from telegram import ChatAction, error
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler, Filters, MessageHandler
 from telegram.ext.dispatcher import run_async
 import logging

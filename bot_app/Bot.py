@@ -412,8 +412,14 @@ def custom_command_handler(bot, update):
     # /msg command. Preserves whitespace. Leaves error handling to the chat.send_message method
     if update.message.text.startswith('/msg'):
         text = update.message.text[4:].strip()
+
+        if text.startswith("@"):
+            splitter = re.search("\s", text).start()
+
+            if splitter is not None:
+                text = text[splitter:].strip()
+
         splitter = re.search("\s", text).start()
-        print(splitter)
 
         if splitter is None:
             args = [text]

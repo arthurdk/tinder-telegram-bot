@@ -9,8 +9,6 @@ import time
 
 @run_async
 def send_message(bot, update, args):
-    global data
-
     chat_id = update.message.chat_id
     sender = update.message.from_user.id
 

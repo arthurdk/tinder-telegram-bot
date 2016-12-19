@@ -334,6 +334,9 @@ def set_account(bot, update):
 
 
 def dynamic_timeout_formular(min_votes, votes_fraction):
+    if votes_fraction >= 1:
+        return 1
+
     result = 1
     result += (1 - votes_fraction) * math.log2(min_votes) # Linear part makes timeout rise
     result += min_votes * (min_votes**((1 - votes_fraction)**3) - 1) # Exponential part to punish really low vote counts

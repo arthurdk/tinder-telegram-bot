@@ -1,6 +1,8 @@
 from telegram.ext.dispatcher import run_async
 from bot_app import messages, keyboards
 from telegram import TelegramError
+import bot_app.data as data
+
 
 @run_async
 def send_instagram_urls(private_chat_id, group_chat_id, bot, incoming_message):

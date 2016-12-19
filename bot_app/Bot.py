@@ -325,7 +325,7 @@ def set_account(bot, update):
         notify_start_private_chat(bot=bot,
                                   chat_id=change_account_queries[sender],
                                   incoming_message=update.message)
-    elif update.message.chat.type == "group":
+    elif sender != change_account_queries[sender]:
         keyboard = keyboards.switch_private_chat_keyboard(bot.username)
         notify_send_token(bot=bot, is_group=True,
                           chat_id=change_account_queries[sender],
@@ -440,7 +440,7 @@ def message_handler(bot, update):
             bot.sendMessage(chat_id, text=message)
 
     # Ignore reply to the bot in groups
-    elif update.message.chat.type != "group":
+    elif change_account_queries[sender] == sender:
         update.message.reply_text(error_messages["unknown_command"])
 
 

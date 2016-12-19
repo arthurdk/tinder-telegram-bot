@@ -56,7 +56,8 @@ class Settings:
                                 "vote was cast. The vote doesn't end before the required amount of nodes is reached."
                                 "'required_votes' starts the timeout after the required amount of votes has been "
                                 "reached. 'dynamic' allows voting to finish before the required amount of votes has "
-                                "been reached, but with a higher timeout.")
+                                "been reached, but with a higher timeout. Also, the timeout gets lower if more people "
+                                "than necessary vote.")
     }
 
     def __init__(self):

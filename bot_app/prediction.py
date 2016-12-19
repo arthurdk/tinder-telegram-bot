@@ -37,12 +37,12 @@ class EmojiPrediction(BasePrediction):
     @staticmethod
     def get_sentence(cat):
         # Would be nice to load from file
-        emoji = {Categories.VERY_HOT: ["❤️", "😍", "👌"],
+        emoji = {Categories.VERY_HOT: ["❤️", "😍", "👌", "🍆💦😮"],
                  Categories.HOT: ["😚"],
                  Categories.LIKABLE: ["👍", "😙"],
                  Categories.UNSURE: ["🤔"],
                  Categories.DISLIKABLE: ["👎"],
-                 Categories.NOPE: ["🙈", "😐", "😦"],
+                 Categories.NOPE: ["🙈", "😐", "😦", "🐐"],
                  Categories.SUPER_NOPE: ["😰"]}
 
         idx = randint(0, len(emoji[cat]) - 1)
@@ -70,18 +70,27 @@ class OneLinerPrediction(BasePrediction):
     def get_sentence(cat):
         # Would be nice to load from file
         line = {Categories.VERY_HOT: ["Dat ass",
-                                      "These eyes make me undress",
-                                      ],
+                                      "These eyes make me undress"],
+
                 Categories.HOT: ["I like your style",
                                  "Do you want to come to my bed?"],
+
                 Categories.LIKABLE: ["Nice."],
-                Categories.UNSURE: ["Well I don't really know.", "Unsure."],
-                Categories.DISLIKABLE: ["Well, maybe not."],
+
+                Categories.UNSURE: ["Well I don't really know.",
+                                    "Unsure."],
+
+                Categories.DISLIKABLE: ["Well, maybe not.",
+                                        "I’m willing to lower my standards if you’re going on a date with me."],
+
                 Categories.NOPE: ["I would not implement you as a feature into my life",
-                                  "If you were in my life you were a bug"
-                                  ],
+                                  "If you were in my life you would be a bug",
+                                  "Is your dad retarded? Because you’re special."],
+
                 Categories.SUPER_NOPE: ["What a whale", "Run you fools",
-                                        "Even with those filters, you're still ugly", "Burn it with fire"]
+                                        "Even with those filters, you're still ugly",
+                                        "Kill it! Kill it with fire!",
+                                        "If you were on fire and I had a glass of water, I would drink it."]
                 }
         idx = randint(0, len(line[cat]) - 1)
         return line[cat][idx]

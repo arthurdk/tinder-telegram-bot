@@ -70,27 +70,60 @@ class OneLinerPrediction(BasePrediction):
     def get_sentence(cat):
         # Would be nice to load from file
         line = {Categories.VERY_HOT: ["Dat ass",
-                                      "These eyes make me undress"],
+                                      "These eyes make me undress",
+                                      "Booooobs!",
+                                      "Hot ten!",
+                                      "Ten of ten!",
+                                      "Will you marry me?",
+                                      "Welcome to heaven",
+                                      "Cute",
+                                      "Mmmmhhhmmm please undress!",
+                                      "Show me more of that perfect ..... sexy ..... bodiuuuunngh *continues to moan*"],
 
                 Categories.HOT: ["I like your style",
-                                 "Do you want to come to my bed?"],
+                                 "Do you want to come to my bed?",
+                                 "Come and see daddy!",
+                                 "Hot chick!",
+                                 "*Whistles*",
+                                 "Pretty",
+                                 "Attractive",
+                                 "My little robot likes it",
+                                 "Goodlooking"],
 
-                Categories.LIKABLE: ["Nice."],
+                Categories.LIKABLE: ["Nice.",
+                                     "I hope she has a good personality.",
+                                     "What about we meet and get to know each other better?",
+                                     "I think you would fit me good."],
 
                 Categories.UNSURE: ["Well I don't really know.",
-                                    "Unsure."],
+                                    "Unsure.",
+                                    "Let's check her personality.",
+                                    "You a similar to my ex-girlfriend."],
 
                 Categories.DISLIKABLE: ["Well, maybe not.",
-                                        "I’m willing to lower my standards if you’re going on a date with me."],
+                                        "I’m willing to lower my standards if you’re going on a date with me.",
+                                        "What else do you have to offer?",
+                                        "Not very attractive",
+                                        "Not very cute",
+                                        "Let's be friends!"],
 
                 Categories.NOPE: ["I would not implement you as a feature into my life",
                                   "If you were in my life you would be a bug",
-                                  "Is your dad retarded? Because you’re special."],
+                                  "Is your dad retarded? Because you’re special.",
+                                  "Yuk!",
+                                  "I rather go an play world of warcraft.",
+                                  "Even with those filters, you are still ugly",
+                                  "Did you fall from heaven? Because your face is completely ruined.",
+                                  "Meh"],
 
-                Categories.SUPER_NOPE: ["What a whale", "Run you fools",
+                Categories.SUPER_NOPE: ["What a whale",
+                                        "Run you fools",
                                         "Even with those filters, you're still ugly",
                                         "Kill it! Kill it with fire!",
-                                        "If you were on fire and I had a glass of water, I would drink it."]
+                                        "If you were on fire and I had a glass of water, I would drink it.",
+                                        "Welcome to hell",
+                                        "Thar she blows! (This is an old sailors expression for sighting a whale. So "
+                                        "it is very degrading. I'm sorry.)"]
                 }
         idx = randint(0, len(line[cat]) - 1)
         return line[cat][idx]

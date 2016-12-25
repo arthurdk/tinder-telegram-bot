@@ -20,6 +20,7 @@ settings_defaults = {
     "store_votes": "false"
 }
 
+
 # Get your key on their website
 guggy_api_key = None
 prediction_backend = None

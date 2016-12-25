@@ -344,7 +344,7 @@ def wait_for_vote_timeout(conversation: Conversation):
     starting_time = -1
 
     # Wait for the number of required votes
-    while len(conversation.current_votes) < min_votes and len(conversation.current_votes) < 5 \
+    while (len(conversation.current_votes) < min_votes and len(conversation.current_votes) < 5) \
             or timeout_mode == "dynamic":
         if len(conversation.current_votes) > 0 and starting_time == -1:
             starting_time = time.time()
@@ -519,8 +519,14 @@ def custom_command_handler(bot: Bot, update: Update):
     """
     if update.message.text.startswith('/msg'):
         text = update.message.text[4:].strip()
+
+        if text.startswith("@"):
+            splitter = re.search("\s", text).start()
+
+            if splitter is not None:
+                text = text[splitter:].strip()
+
         splitter = re.search("\s", text).start()
-        print(splitter)
 
         if splitter is None:
             args = [text]

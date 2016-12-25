@@ -1,10 +1,9 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-
 import requests
 from telegram.ext import InlineQueryHandler
-from telegram import ChatAction, error
+from telegram import ChatAction, error, Bot, Update
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler, Filters, MessageHandler
 from telegram.ext.dispatcher import run_async
 import logging
@@ -37,7 +36,7 @@ logging.basicConfig(level=log_level,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
-def start(bot, update):
+def start(bot: Bot, update: Update):
     """
     Handle /start command
     :param bot:
@@ -53,7 +52,7 @@ def send_location(latitude, longitude, bot, chat_id):
     bot.sendLocation(chat_id, latitude=latitude, longitude=longitude)
 
 
-def update_location(bot, update):
+def update_location(bot: Bot, update: Update):
     """
     Handle location being sent in the conversation
     :param bot:
@@ -64,7 +63,7 @@ def update_location(bot, update):
     set_location(bot, update, [location.latitude, location.longitude])
 
 
-def set_location(bot, update, args):
+def set_location(bot: Bot, update: Update, args):
     """
     Handles /location command
     :param bot:
@@ -95,7 +94,7 @@ def set_location(bot, update, args):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
-def set_timeout(bot, update, args):
+def set_timeout(bot: Bot, update: Update, args):
     """
     Handles /timeout command
     :param bot:
@@ -132,7 +131,7 @@ def set_timeout(bot, update, args):
 
 
 @run_async
-def set_auto(bot, update):
+def set_auto(bot: Bot, update: Update):
     """
     Handles /auto command
     :param bot:
@@ -153,7 +152,7 @@ def set_auto(bot, update):
 
 
 @run_async
-def send_matches(bot, update):
+def send_matches(bot: Bot, update: Update):
     """
     Send list of matches (pictures) to private chat
     :param bot:
@@ -191,7 +190,7 @@ def send_matches(bot, update):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
-def start_vote_session(bot, update, job_queue):
+def start_vote_session(bot: Bot, update: Update, job_queue):
     """
     Handles /new_vote command
     :param bot:
@@ -265,7 +264,13 @@ def start_vote(bot, job):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
-def unlink(bot, update):
+def unlink(bot: Bot, update: Update):
+    """
+    Handles /unlink command
+    :param bot:
+    :param update:
+    :return:
+    """
     global data
     sender = update.message.from_user.id
     chat_id = update.message.chat_id
@@ -279,7 +284,7 @@ def unlink(bot, update):
         send_error(bot, chat_id=chat_id, name="account_not_setup")
 
 
-def set_account(bot, update):
+def set_account(bot: Bot, update: Update):
     """
     Handles /set_account command
     :param bot:
@@ -328,7 +333,7 @@ def dynamic_timeout_formular(min_votes, votes_fraction):
     return result
 
 
-def wait_for_vote_timeout(conversation):
+def wait_for_vote_timeout(conversation: Conversation):
     """
     Wait until the vote is finished (following the settings)
     :param conversation:
@@ -362,7 +367,7 @@ def wait_for_vote_timeout(conversation):
 
 
 @run_async
-def alarm_vote(bot, chat_id, job_queue):
+def alarm_vote(bot: Bot, chat_id: str, job_queue):
     """
     Handles the end of a voting session
     :param bot:
@@ -405,7 +410,7 @@ def alarm_vote(bot, chat_id, job_queue):
         job_queue.put(job)
 
 
-def message_handler(bot, update):
+def message_handler(bot: Bot, update: Update):
     """
     Handles incoming text based messages
     :param bot:
@@ -476,7 +481,7 @@ def message_handler(bot, update):
 
 
 @run_async
-def send_about(bot, update):
+def send_about(bot: Bot, update: Update):
     """
     Send the about message from the /about command
     :param bot:
@@ -490,7 +495,7 @@ def send_about(bot, update):
     send_custom_message(bot=bot, chat_id=chat_id, message=msg)
 
 
-def send_matches_menu(bot, chat_id):
+def send_matches_menu(bot: Bot, chat_id: str):
     """
     Not implemented yet.
     :param bot:
@@ -505,7 +510,7 @@ def send_matches_menu(bot, chat_id):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
-def custom_command_handler(bot, update):
+def custom_command_handler(bot: Bot, update: Update):
     """
     /msg command. Preserves whitespace. Leaves error handling to the chat.send_message method
     :param bot:
@@ -566,7 +571,7 @@ def main():
     # Moderators
     dispatcher.add_handler(CommandHandler('make_me_a_mod', admin.make_me_a_mod))
 
-    inline_caps_handler = InlineQueryHandler(chat.inline_preview)
+    inline_caps_handler = InlineQueryHandler(inline.inline_preview)
     dispatcher.add_handler(inline_caps_handler)
 
     dispatcher.add_handler(MessageHandler(Filters.command, custom_command_handler))

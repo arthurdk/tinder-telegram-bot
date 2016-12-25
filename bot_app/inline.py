@@ -1,11 +1,12 @@
 from telegram.ext.dispatcher import run_async
 from bot_app import messages, keyboards
-from telegram import TelegramError
+from telegram import TelegramError, Bot
 import bot_app.data as data
+from telegram import InlineQueryResultPhoto, InlineQueryResultArticle, InputTextMessageContent
 
 
 @run_async
-def send_instagram_urls(private_chat_id, group_chat_id, bot, incoming_message):
+def send_instagram_urls(private_chat_id: str, group_chat_id: str, bot, incoming_message):
     global data
     if group_chat_id in data.conversations:
         conversation = data.conversations[group_chat_id]
@@ -83,10 +84,82 @@ def do_press_inline_button(bot, update, job_queue):
         raise e
 
 
-@run_async
-def send_more_photos(private_chat_id, group_chat_id, bot, incoming_message):
+def inline_preview(bot: Bot, update):
     """
-    Function used for sending all pictures to private chat directly
+
+    :param bot:
+    :param update:
+    :return:
+    """
+    global data
+    query = update.inline_query.query
+    # Return on empty query
+    if not query:
+        return
+    if update.inline_query.offset:
+        offset = int(update.inline_query.offset)
+    else:
+        offset = 0
+
+    args = query.split(" ")
+    if len(args) != 2:
+        return
+    mode = args[0]
+    if mode not in ["pictures", "matches"]:
+        return
+
+    chat_id = int(args[1])
+    if chat_id not in data.conversations:
+        return
+
+    conversation = data.conversations[chat_id]
+    user_id = update.inline_query.from_user.id
+    chat_member = bot.getChatMember(user_id=user_id, chat_id=chat_id)
+    if chat_member.status == chat_member.KICKED or chat_member.status == chat_member.LEFT:
+        return
+    results = list()
+    last_idx = 0
+    cache = 60
+    if mode == "matches":
+        matches = conversation.get_matches()
+
+        for idx, match in enumerate(matches):
+            if idx >= offset:
+                thumb = match.user.get_photos(width='84')[0]
+                full = match.user.get_photos(width='640')[0]
+
+                results.append(InlineQueryResultPhoto(id=idx, caption=match.user.name, description=match.user.name,
+                                                      photo_width=640,
+                                                      thumb_url=thumb,
+                                                      photo_url=full))
+                last_idx = idx + 1
+    elif mode == "pictures":
+        cur_user = conversation.current_user
+        thumbs = cur_user.get_photos(width='84')
+        fulls = cur_user.get_photos(width='640')
+        for idx, pic in enumerate(thumbs):
+            if idx >= offset:
+                thumb = pic
+                full = fulls[idx]
+
+                results.append(InlineQueryResultPhoto(id=idx, caption="%s %d/%d" % (cur_user.name, idx, len(thumbs)),
+                                                      description=cur_user.name,
+                                                      photo_width=640,
+                                                      thumb_url=thumb,
+                                                      photo_url=full))
+                last_idx = idx + 1
+
+        cache = conversation.timeout
+        if cache > 0:
+            cache -= 1
+
+    bot.answerInlineQuery(update.inline_query.id, results, cache_time=cache, next_offset=last_idx)
+
+
+@run_async
+def send_more_photos(private_chat_id: str, group_chat_id: str, bot, incoming_message):
+    """
+    Function used for sending all user pictures to private chat directly
     :param incoming_message:
     :param private_chat_id:
     :param group_chat_id:
@@ -114,3 +187,7 @@ def send_more_photos(private_chat_id, group_chat_id, bot, incoming_message):
             bot.sendMessage(private_chat_id, text=message)
     else:
         messages.send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
+
+
+def is_user_allowed(self, chat_id, user_id):
+    pass

@@ -205,6 +205,16 @@ def notify_start_private_chat(bot, chat_id, incoming_message=None):
 
 
 def notify_send_token(bot, chat_id, reply_to_message_id, is_group, group_name, reply_markup=[[]]):
+    """
+
+    :param bot:
+    :param chat_id:
+    :param reply_to_message_id:
+    :param is_group:
+    :param group_name:
+    :param reply_markup:
+    :return:
+    """
     msg = messages["send_token"] % bot.name
     if is_group:
         msg += " for the group %s" % group_name

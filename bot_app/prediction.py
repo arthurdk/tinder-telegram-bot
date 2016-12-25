@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-/s
 from abc import ABC, abstractmethod
-import json
 import requests
 from telegram.ext.dispatcher import run_async
 from telegram import ChatAction
@@ -203,7 +202,7 @@ def create_sender():
     return BasePrediction()
 
 
-def choose_category(hot):
+def choose_category(hot: float):
     if hot > 0.9:
         return Categories.VERY_HOT
     elif hot > 0.75:

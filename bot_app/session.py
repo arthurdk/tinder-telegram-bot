@@ -10,7 +10,7 @@ def create_pynder_session(fb_token):
     return pynder.Session(facebook_token=fb_token)
 
 
-def do_login(bot, chat_id, sender, token):
+def do_login(bot, chat_id: str, sender: str, token: str):
     global data
     try:
         # Notify this is going to take some time

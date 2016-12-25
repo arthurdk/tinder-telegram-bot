@@ -25,7 +25,7 @@ import re
 import traceback
 import math
 import bot_app.inline as inline
-
+import git
 from bot_app.settings import location_search_url
 
 if settings.DEBUG_MODE:
@@ -483,8 +483,11 @@ def send_about(bot, update):
     :param update:
     :return:
     """
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    msg = messages["about"] + "\nLast commit [%s](https://github.com/arthurdk/tinder-telegram-bot/commit/%s)" % (sha, sha)
     chat_id = update.message.chat_id
-    send_message(bot, chat_id=chat_id, name="about")
+    send_custom_message(bot=bot, chat_id=chat_id, message=msg)
 
 
 def send_matches_menu(bot, chat_id):

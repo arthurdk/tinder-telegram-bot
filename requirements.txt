@@ -8,3 +8,5 @@ requests==2.12.4
 six==1.10.0
 telegram==0.0.1
 urllib3==1.19.1
+gitpython==2.1.1
+

@@ -22,6 +22,7 @@ help_messages["help"] = "*Usage of the bot:*\n" \
                         "_Logging in with your Tinder account:_\n" \
                         "1. Use `/set_account` \n" \
                         "2. The bot will ask you for your facebook token. Just send it plain.\n" \
+                        "3. Use `/unlink` when you want the bot to delete your Tinder account\n" \
                         "\n" \
                         "_Searching for matches:_\n" \
                         " - Use /location to set your location.\n" \
@@ -62,6 +63,7 @@ messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"
 messages["unblocking_successful"] = "Sending and polling were unblocked."
 messages["switch_private"] = "🔒 Switch to private chat"
 messages["back_group"] = "Switch to group"
+messages["account_unlinked"] = "Account successfully unlinked."
 messages["ask_for_token"] = "Please, send me your facebook authentication token.\nNote: This token " \
                             "is only for accessing your Tinder account, your Facebook account is safe."
 
@@ -69,7 +71,7 @@ messages["ask_for_token"] = "Please, send me your facebook authentication token.
 error_messages = {}
 error_messages["account_not_setup"] = "Chat not registered yet, please add token using /set_account"
 error_messages["unknown_match_id"] = "Unknown match-id."
-error_messages["command_not_allowed"] = "This command must not be executed by this user."
+error_messages["command_not_allowed"] = "This command must not be executed by the account owner."
 error_messages["range_too_large"] = "The given range is too large."
 error_messages["unknown_command"] = "I'm sorry Dave I'm afraid I can't do that."
 error_messages["tinder_timeout"] = "Tinder account needs to be reconnected to the bot, please use /set_account"

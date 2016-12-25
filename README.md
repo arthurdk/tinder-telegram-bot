@@ -184,6 +184,7 @@ unblock - Remove the sending/polling blocade once
 poll_unanswered - Read only unanswered messages
 about - Learn more about the bot
 help - Display help
+unlink - Unlink your Tinder account from the bot
 ```
 
 And do not forget to delete your bot from the conversation and add it again.

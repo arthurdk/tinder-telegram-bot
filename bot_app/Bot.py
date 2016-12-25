@@ -102,7 +102,8 @@ def set_timeout(bot, update, args):
     chat_id = update.message.chat_id
     if chat_id in data.conversations:
         if len(args) != 1:
-            message = "You need to send the time in seconds along with the command"
+            timeout = str(data.conversations[chat_id].timeout)
+            message = "Current timeout %s seconds." % timeout
             send_custom_message(bot, chat_id, message=message)
         else:
             try:
@@ -256,6 +257,20 @@ def start_vote(bot, job):
                             reply_to_message_id=conversation.vote_msg.message_id)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
+
+
+def unlink(bot, update):
+    global data
+    sender = update.message.from_user.id
+    chat_id = update.message.chat_id
+    if chat_id in data.conversations:
+        if sender == data.conversations[chat_id].owner:
+            del data.conversations[chat_id]
+            send_message(bot, chat_id, name="account_unlinked")
+        else:
+            send_error(bot, chat_id=chat_id, name="command_not_allowed")
+    else:
+        send_error(bot, chat_id=chat_id, name="account_not_setup")
 
 
 def set_account(bot, update):
@@ -516,6 +531,7 @@ def main():
     dispatcher.add_handler(CommandHandler('auto', set_auto))
     dispatcher.add_handler(CommandHandler('location', set_location, pass_args=True))
     dispatcher.add_handler(CommandHandler('set_account', set_account))
+    dispatcher.add_handler(CommandHandler('unlink', unlink))
     dispatcher.add_handler(CommandHandler('matches', send_matches))
     dispatcher.add_handler(CallbackQueryHandler(inline.do_press_inline_button, pass_job_queue=True))
     dispatcher.add_handler(MessageHandler(Filters.text, message_handler))

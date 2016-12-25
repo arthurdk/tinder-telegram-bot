@@ -35,6 +35,13 @@ def send_instagram_urls(private_chat_id, group_chat_id, bot, incoming_message):
 
 
 def do_press_inline_button(bot, update, job_queue):
+    """
+    Handle any inline button pressing
+    :param bot:
+    :param update:
+    :param job_queue:
+    :return:
+    """
     from bot_app import Bot
     global data
     try:

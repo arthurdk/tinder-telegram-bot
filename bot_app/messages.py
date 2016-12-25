@@ -72,6 +72,9 @@ error_messages["unknown_match_id"] = "Unknown match-id."
 error_messages["command_not_allowed"] = "This command must not be executed by this user."
 error_messages["range_too_large"] = "The given range is too large."
 error_messages["unknown_command"] = "I'm sorry Dave I'm afraid I can't do that."
+error_messages["tinder_timeout"] = "Tinder account needs to be reconnected to the bot, please use /set_account"
+error_messages["auth_failed"] = "Authentication failed! Please try again."
+error_messages["new_vote_failed"] = "Failed to start new vote."
 ### Functions for sending messages to the user ###
 
 
@@ -120,7 +123,21 @@ def send_message(bot, chat_id, name):
         msg = name
     else:
         msg = messages[name]
-    bot.sendMessage(chat_id, text=msg)
+    __actual_send_message(bot=bot, chat_id=chat_id, text=msg)
+
+
+def __actual_send_message(bot, chat_id, text):
+    """
+    Try sending markdown and revert to normal text if broken
+    :param bot:
+    :param chat_id:
+    :param text:
+    :return:
+    """
+    try:
+        bot.sendMessage(chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
+    except TelegramError:
+        bot.sendMessage(chat_id, text=text)
 
 
 def send_private_message(bot, user_id, text):
@@ -132,7 +149,7 @@ def send_private_message(bot, user_id, text):
     :return:
     """
     try:
-        bot.sendMessage(user_id, text=text)
+        __actual_send_message(bot=bot, chat_id=user_id, text=text)
         return True
     except TelegramError as e:
         if e.message == "Unauthorized":
@@ -177,7 +194,9 @@ def send_private_link(bot, user_id, url):
 
 def notify_start_private_chat(bot, chat_id, incoming_message=None):
     if incoming_message is not None and incoming_message.from_user.username != bot.username:
-        bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name, reply_to_message_id=incoming_message.message_id)
+        bot.sendMessage(chat_id,
+                        text=messages["start_chat"] % bot.name,
+                        reply_to_message_id=incoming_message.message_id)
     else:
         bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name)
 
@@ -196,7 +215,7 @@ def send_error(bot, chat_id, name):
     if name not in error_messages:
         raise Exception('Unknown error messages: ' + name)
 
-    bot.sendMessage(chat_id, text=error_messages[name])
+    __actual_send_message(bot, chat_id=chat_id, text=error_messages[name])
 
 
 def unknown(bot, update):
@@ -204,14 +223,16 @@ def unknown(bot, update):
 
 
 def send_custom_message(bot, chat_id, message):
-    # Try sending markdown and revert to normal text if broken/h
-    try:
-        bot.sendMessage(chat_id, text=message, parse_mode=ParseMode.MARKDOWN)
-    except TelegramError:
-        bot.sendMessage(chat_id, text=message)
+    """
+    Send a custom message (not predefined)
+    :param bot:
+    :param chat_id:
+    :param message:
+    :return:
+    """
+    __actual_send_message(bot, chat_id=chat_id, text=message)
 
-### Handling bot commands ###
 
-
+# Handling bot commands
 def send_help_message(bot, update):
     send_help(bot, update.message.chat_id, "help")

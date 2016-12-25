@@ -10,15 +10,14 @@ from telegram.ext.dispatcher import run_async
 import logging
 import pynder
 import time
-
 import bot_app.db_model as db
 import peewee as pw
-
 from bot_app.model import Conversation
 import bot_app.chat as chat
 import bot_app.admin as admin
 from bot_app.messages import *
 import bot_app.data as data
+import bot_app.session as session
 import bot_app.prediction as prediction
 import bot_app.data_retrieval as data_retrieval
 import bot_app.keyboards as keyboards
@@ -32,16 +31,17 @@ from bot_app.settings import location_search_url
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-change_account_queries = {}
-
 
 def start(bot, update):
+    """
+    Handle /start command
+    :param bot:
+    :param update:
+    :return:
+    """
     chat_id = update.message.chat_id
+    # TODO if using already loging in -> do not display welcome message
     send_message(bot, chat_id, "welcome")
-
-
-def create_pynder_session(fb_token):
-    return pynder.Session(facebook_token=fb_token)
 
 
 def send_location(latitude, longitude, bot, chat_id):
@@ -49,16 +49,29 @@ def send_location(latitude, longitude, bot, chat_id):
 
 
 def update_location(bot, update):
+    """
+    Handle location being sent in the conversation
+    :param bot:
+    :param update:
+    :return:
+    """
     location = update.message.location
     set_location(bot, update, [location.latitude, location.longitude])
 
 
 def set_location(bot, update, args):
+    """
+    Handles /location command
+    :param bot:
+    :param update:
+    :param args:
+    :return:
+    """
     global data
     chat_id = update.message.chat_id
     if chat_id in data.conversations:
         if len(args) < 1:
-            send_help(bot, chat_id, "set_location", "Please indicate coordinates or the name of a place")
+            send_help(bot, chat_id, "set_location", "Please indicate GPS coordinates or the name of a place")
             return
         else:
             bot.sendChatAction(chat_id=chat_id, action=ChatAction.FIND_LOCATION)
@@ -78,11 +91,19 @@ def set_location(bot, update, args):
 
 
 def set_timeout(bot, update, args):
+    """
+    Handles /timeout command
+    :param bot:
+    :param update:
+    :param args:
+    :return:
+    """
     global data
     chat_id = update.message.chat_id
     if chat_id in data.conversations:
         if len(args) != 1:
             message = "You need to send the time in seconds along with the command"
+            send_custom_message(bot, chat_id, message=message)
         else:
             try:
                 timeout = int(args[0])
@@ -92,18 +113,25 @@ def set_timeout(bot, update, args):
                         settings.get_setting("max_timeout")):
                     data.conversations[chat_id].timeout = timeout
                     message = "Timeout updated to %d seconds." % data.conversations[chat_id].timeout
+                    send_custom_message(bot, chat_id, message=message)
                 else:
                     send_custom_message(bot, chat_id, "Timeout out of range: "
                                         + str(settings.get_setting("min_timeout")) + "-"
                                         + str(settings.get_setting("max_timeout")))
             except AttributeError:
                 message = "An error happened."
-        bot.sendMessage(chat_id, text=message)
+                send_custom_message(bot, chat_id, message=message)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
 def set_auto(bot, update):
+    """
+    Handles /auto command
+    :param bot:
+    :param update:
+    :return:
+    """
     global data
     chat_id = update.message.chat_id
     if chat_id in data.conversations:
@@ -119,17 +147,21 @@ def set_auto(bot, update):
 
 @run_async
 def send_matches(bot, update):
+    """
+    Send list of matches (pictures) to private chat
+    :param bot:
+    :param update:
+    :return:
+    """
     global data
     chat_id = update.message.chat_id
     sender_id = update.message.from_user.id
     if chat_id in data.conversations:
         try:
             conversation = data.conversations[chat_id]
-
             matches = conversation.get_matches()
-
             id = 0
-
+            # TODO cache the photo urls for some time
             for match in matches:
                 photo = match.user.get_photos(width='172')[0]
                 try:
@@ -148,61 +180,77 @@ def send_matches(bot, update):
         except AttributeError as e:
             message = "An error happened."
             bot.sendMessage(sender_id, text=message)
-            print(e)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
 def start_vote_session(bot, update, job_queue):
+    """
+    Handles /new_vote command
+    :param bot:
+    :param update:
+    :param job_queue:
+    :return:
+    """
     chat_id = update.message.chat_id
     job = Job(start_vote, 0, repeat=False, context=(chat_id, job_queue))
     job_queue.put(job)
 
 
 def start_vote(bot, job):
+    """
+    Actually handles the /new_vote command
+    :param bot:
+    :param job:
+    :return:
+    """
     global data
     chat_id, job_queue = job.context
+    # If conversation is already registered
     if chat_id in data.conversations:
         conversation = data.conversations[chat_id]
+        # Check if no vote is already happening
         if not conversation.is_voting:
             conversation.set_is_voting(True)
             # Fetch nearby users
             retry = 0
             bot.sendChatAction(chat_id=chat_id, action=ChatAction.UPLOAD_PHOTO)
-            while retry < 3 and len(conversation.users) == 0:
-                conversation.refresh_users()
-                retry += 1
-            # Check if there are still user in the queue
-            if len(conversation.users) == 0:
-                bot.sendMessage(chat_id, text="There are no other users available.")
-            else:
-                conversation.current_votes = {}
-                # Assign user
-                try:
+            try:
+                while retry < 3 and len(conversation.users) == 0:
+                    conversation.refresh_users()
+                    retry += 1
+                # Check if there are still users in the queue
+                if len(conversation.users) == 0:
+                    bot.sendMessage(chat_id, text="There are no other users available.")
+                else:
+                    # Empty the vote list
+                    conversation.current_votes = {}
+                    # Choose user
                     conversation.current_user = conversation.users[0]
                     del conversation.users[0]
                     conversation.cur_user_insta_private = None
                     # Retrieve photos
                     photos = conversation.current_user.get_photos(width='320')
-                    current_vote = len(conversation.get_votes())
                     max_vote = conversation.settings.get_setting("min_votes_before_timeout")
-                    caption = get_caption_match(conversation.current_user, current_vote, max_vote, bio=True)
-
-                    # Prepare voting inline keyboard
+                    caption = get_caption_match(conversation.current_user, 0, max_vote, bio=True)
+                    # Prepare inline keyboard for voting
                     reply_markup = keyboards.get_vote_keyboard(conversation=conversation, bot_name=bot.username)
                     msg = bot.sendPhoto(chat_id, photo=photos[0], caption=caption,
                                         reply_markup=reply_markup)
                     # Why? Before this commit a question was sent to the group along with the photo.
+                    # TODO => refactor properly
                     conversation.vote_msg = msg
                     conversation.result_msg = msg
                     # Launch prediction
+                    # TODO only launch prediction is chat allowed it
                     prediction_job = Job(prediction.do_prediction, 0,
                                          repeat=False,
                                          context=(chat_id, conversation.current_user.id, msg.message_id))
                     job_queue.put(prediction_job)
-                except BaseException as e:
-                    conversation.set_is_voting(False)
-                    traceback.print_exc()
+            except BaseException as e: # TODO Handles pynder request error !
+                conversation.set_is_voting(False)
+                send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
+                traceback.print_exc()
         else:
             bot.sendMessage(chat_id, text="Current vote is not finished yet.",
                             reply_to_message_id=conversation.vote_msg.message_id)
@@ -211,9 +259,15 @@ def start_vote(bot, job):
 
 
 def set_account(bot, update):
-    global change_account_queries
+    """
+    Handles /set_account command
+    :param bot:
+    :param update:
+    :return:
+    """
+    global data
     sender = update.message.from_user.id
-    change_account_queries[sender] = update.message.chat_id
+    data.change_account_queries[sender] = update.message.chat_id
     msg = messages["ask_for_token"]
 
     group_name = update.message.chat.title
@@ -221,20 +275,27 @@ def set_account(bot, update):
         msg += " for chat %s" % group_name
 
     is_msg_sent = send_private_message(bot, user_id=sender, text=msg)
-
+    # Check if user already allowed bot to send private messages
     if not is_msg_sent:
         notify_start_private_chat(bot=bot,
-                                  chat_id=change_account_queries[sender],
+                                  chat_id=data.change_account_queries[sender],
                                   incoming_message=update.message)
-    elif sender != change_account_queries[sender]:
+    # If the bot is not used in a private chat, display a button allowing user to easily switch to the private chat
+    elif sender != data.change_account_queries[sender]:
         keyboard = keyboards.switch_private_chat_keyboard(bot.username)
         notify_send_token(bot=bot, is_group=True,
-                          chat_id=change_account_queries[sender],
+                          chat_id=data.change_account_queries[sender],
                           reply_to_message_id=update.message.message_id, group_name=group_name,
                           reply_markup=keyboard)
 
 
 def dynamic_timeout_formular(min_votes, votes_fraction):
+    """
+    Formula used for dynamic timeout
+    :param min_votes:
+    :param votes_fraction:
+    :return:
+    """
     if votes_fraction >= 1:
         return 1 / votes_fraction # Reduce timeout if more people than necessary voted
 
@@ -246,6 +307,11 @@ def dynamic_timeout_formular(min_votes, votes_fraction):
 
 
 def wait_for_vote_timeout(conversation):
+    """
+    Wait until the vote is finished (following the settings)
+    :param conversation:
+    :return:
+    """
     min_votes = int(conversation.settings.get_setting(setting="min_votes_before_timeout"))
     timeout_mode = conversation.settings.get_setting(setting="timeout_mode")
     starting_time = -1
@@ -274,11 +340,18 @@ def wait_for_vote_timeout(conversation):
 
 @run_async
 def alarm_vote(bot, chat_id, job_queue):
+    """
+    Handles the end of a voting session
+    :param bot:
+    :param chat_id:
+    :param job_queue:
+    :return:
+    """
     global data
 
     conversation = data.conversations[chat_id]
     wait_for_vote_timeout(conversation)
-
+    # Update the message to show that vote is ended
     msg = conversation.result_msg
     likes, dislikes = conversation.get_stats()
     message = "%d likes, %d dislikes " % (likes, dislikes)
@@ -288,27 +361,34 @@ def alarm_vote(bot, chat_id, job_queue):
     bot.editMessageCaption(chat_id=msg.chat_id,
                            message_id=msg.message_id,
                            caption=caption + "\n%s" % message)
-    if likes > dislikes:
-        result = True
-        conversation.current_user.like()
-    else:
-        result = False
-        conversation.current_user.dislike()
-
+    try:
+        if likes > dislikes:
+            conversation.current_user.like()
+        else:
+            conversation.current_user.dislike()
+    except pynder.errors.RequestError:
+        send_error(bot=bot,  chat_id=chat_id, name="tinder_timeout")
+    # Store vote for future prediction processing
     data_retrieval.do_store_vote(user_id=conversation.current_user.id,
                                  chat_id=chat_id,
-                                 is_like=result)
+                                 is_like=likes > dislikes)
 
     conversation.set_is_voting(False)
     conversation.is_alarm_set = False
+    # If the bot is set to auto -> launch another vote
     if conversation.auto:
         job = Job(start_vote, 0, repeat=False, context=(chat_id, job_queue))
         job_queue.put(job)
 
 
 def message_handler(bot, update):
+    """
+    Handles incoming text based messages
+    :param bot:
+    :param update:
+    :return:
+    """
     global data
-    global change_account_queries
 
     chat_id = update.message.chat_id
     sender = update.message.from_user.id
@@ -316,37 +396,16 @@ def message_handler(bot, update):
     # Check action from main menu
     if text in keyboards.main_keyboard:
         send_matches_menu(bot, chat_id)
-    # Check login
-    elif sender in change_account_queries:
-        try:
-            # Notify this is going to take some time
-            if change_account_queries[sender] != sender:
-                bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-
-            bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-
-            # Create Tinder session
-            session = create_pynder_session(update.message.text)
-            message = "Switching to %s's account." % session.profile.name
-            bot.sendMessage(chat_id=change_account_queries[sender], text=message)
-            if sender != change_account_queries[sender]:
-                group_name = bot.getChat(chat_id=change_account_queries[sender]).title
-                bot.sendMessage(chat_id=sender,
-                                text=message,
-                                reply_markup=keyboards.switch_group_keyboard())
-            # Create conversation.get_value()
-            conversation = Conversation(change_account_queries[sender], session, sender)
-            data.conversations[change_account_queries[sender]] = conversation
-            del change_account_queries[sender]
-        except pynder.errors.RequestError:
-            message = "Authentication failed! Please try again."
-            bot.sendMessage(chat_id, text=message)
+    # Check if someone is trying to login
+    elif sender in data.change_account_queries:
+        session.do_login(bot=bot, chat_id=chat_id, sender=sender,
+                         token=update.message.text)
 
     # Ignore reply to the bot in groups
-    elif sender in change_account_queries.keys():
-        if change_account_queries[sender] == sender:
+    elif sender in data.change_account_queries.keys():
+        if data.change_account_queries[sender] == sender:
             update.message.reply_text(error_messages["unknown_command"])
-
+    # TODO: THIS SHOULD BE SOMEWHERE ELSE I SUPPOSE
     elif text.strip() == "YES":
         if chat_id not in data.make_me_mod_queries.keys():
             return
@@ -387,19 +446,29 @@ def message_handler(bot, update):
             bot.sendMessage(chat_id, text="Mod request denied.")
 
             if group_id in data.conversations.keys():
-                bot.sendMessage(group_id, text="User " + data.conversations[group_id].current_mod_candidate.name
-                                               + " was not made a mod.")
+                msg = "User " + data.conversations[group_id].current_mod_candidate.name + " was not made a mod."
+                send_custom_message(bot, chat_id=group_id, message=msg)
                 data.conversations[group_id].current_mod_candidate = None
 
 
 def send_about(bot, update):
+    """
+    Send the about message from the /about command
+    :param bot:
+    :param update:
+    :return:
+    """
     chat_id = update.message.chat_id
-    # bot.sendMessage(chat_id=chat_id, text="test", reply_markup=keyboards.get_main_keyboard())
-    message = messages["about"]
-    bot.sendMessage(chat_id, text=message)
+    send_message(bot, chat_id=chat_id, name="about")
 
 
 def send_matches_menu(bot, chat_id):
+    """
+    Not implemented yet.
+    :param bot:
+    :param chat_id:
+    :return:
+    """
     global data
     if chat_id in data.conversations:
         conversation = data.conversations[chat_id]
@@ -409,7 +478,12 @@ def send_matches_menu(bot, chat_id):
 
 
 def custom_command_handler(bot, update):
-    # /msg command. Preserves whitespace. Leaves error handling to the chat.send_message method
+    """
+    /msg command. Preserves whitespace. Leaves error handling to the chat.send_message method
+    :param bot:
+    :param update:
+    :return:
+    """
     if update.message.text.startswith('/msg'):
         text = update.message.text[4:].strip()
         splitter = re.search("\s", text).start()

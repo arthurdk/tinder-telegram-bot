@@ -5,7 +5,9 @@ import time
 
 
 class Conversation:
+
     def __init__(self, group_id, session, owner):
+        # The chat id (private ou group id)
         self.group_id = group_id
         self.session = session
         self.is_voting = False

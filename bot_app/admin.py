@@ -30,6 +30,8 @@ class Settings:
         "prediction": Setting("prediction", Boolean(),
                              "If turned on, the bot will try to predict if you are more likely to like or dislike "
                              "an user. Note: if this option is disabled in the bot settings then enabling will do nothing."),
+        "store_votes": Setting("store_votes", Boolean(),
+                              "If turned on, your votes will be saved and may be used to help the bot making better prediction"),
         "chat_mode": Setting("chat_mode", String(["off", "owner", "all"]),
                              "Different modes for chatting. Off means /msg and /poll_msgs are disabled. Owner means, "
                              "only the owner of the current account can use /msg, everybody can use /poll_msgs. All "

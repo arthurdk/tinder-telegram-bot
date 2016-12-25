@@ -16,11 +16,12 @@ settings_defaults = {
     "blind_mode": "False",
     "matches_cache_time": "60",
     "timeout_mode": "dynamic",
-    "prediction": "false"
+    "prediction": "false",
+    "store_votes": "false"
 }
 
 # Get your key on their website
 guggy_api_key = None
-prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
+prediction_backend = None
 location_search_url = "http://nominatim.openstreetmap.org/search/"
 data_retrieval_path = "./data/"

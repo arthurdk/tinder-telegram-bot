@@ -248,7 +248,7 @@ def start_vote(bot, job):
                                              repeat=False,
                                              context=(chat_id, conversation.current_user.id, msg.message_id))
                         job_queue.put(prediction_job)
-            except BaseException as e: # TODO Handles pynder request error !
+            except BaseException as e:  # TODO Handles pynder request error !
                 conversation.set_is_voting(False)
                 send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
                 traceback.print_exc()
@@ -312,12 +312,13 @@ def dynamic_timeout_formular(min_votes, votes_fraction):
     :return:
     """
     if votes_fraction >= 1:
-        return 1 / votes_fraction # Reduce timeout if more people than necessary voted
+        return 1 / votes_fraction  # Reduce timeout if more people than necessary voted
 
     result = 1
-    result += (1 - votes_fraction) * math.log2(min_votes) # Linear part makes timeout rise
-    result += min_votes * (min_votes**((1 - votes_fraction)**3) - 1) # Exponential part to punish really low vote counts
-    result += (40 - 40**(votes_fraction)) / min_votes**2 # Punish missing votes harder if min_votes is low
+    result += (1 - votes_fraction) * math.log2(min_votes)  # Linear part makes timeout rise
+    result += min_votes * (
+    min_votes ** ((1 - votes_fraction) ** 3) - 1)  # Exponential part to punish really low vote counts
+    result += (40 - 40 ** (votes_fraction)) / min_votes ** 2  # Punish missing votes harder if min_votes is low
     return result
 
 
@@ -344,7 +345,8 @@ def wait_for_vote_timeout(conversation):
             votes_fraction = len(conversation.current_votes) / min_votes
             current_time = time.time()
 
-            if current_time > starting_time + conversation.timeout  * dynamic_timeout_formular(min_votes, votes_fraction):
+            if current_time > starting_time + conversation.timeout * dynamic_timeout_formular(min_votes,
+                                                                                              votes_fraction):
                 break
 
     if timeout_mode == "required_votes":
@@ -382,11 +384,12 @@ def alarm_vote(bot, chat_id, job_queue):
         else:
             conversation.current_user.dislike()
     except pynder.errors.RequestError:
-        send_error(bot=bot,  chat_id=chat_id, name="tinder_timeout")
+        send_error(bot=bot, chat_id=chat_id, name="tinder_timeout")
     # Store vote for future prediction processing
-    data_retrieval.do_store_vote(user_id=conversation.current_user.id,
-                                 chat_id=chat_id,
-                                 is_like=likes > dislikes)
+    if conversation.settings.get_setting("store_votes"):
+        data_retrieval.do_store_vote(user_id=conversation.current_user.id,
+                                     chat_id=chat_id,
+                                     is_like=likes > dislikes)
 
     conversation.set_is_voting(False)
     conversation.is_alarm_set = False
@@ -436,8 +439,8 @@ def message_handler(bot, update):
         mod_candidate = conversation.current_mod_candidate
         conversation.current_mod_candidate = None
 
-        mod_candidate_entry = db.User.get_or_create(id = mod_candidate.id)[0]
-        conversation_entry = db.Conversation.get_or_create(id = group_id)[0]
+        mod_candidate_entry = db.User.get_or_create(id=mod_candidate.id)[0]
+        conversation_entry = db.Conversation.get_or_create(id=group_id)[0]
 
         mod_candidate_id = mod_candidate_entry.id
         conversation_entry_id = conversation_entry.id
@@ -445,7 +448,7 @@ def message_handler(bot, update):
         query = db.IsMod.select().where((db.IsMod.user == mod_candidate_id) & (db.IsMod.group == conversation_entry_id))
 
         if not query.exists():
-            db.IsMod.create(user = mod_candidate_entry, group = conversation_entry)
+            db.IsMod.create(user=mod_candidate_entry, group=conversation_entry)
             bot.sendMessage(chat_id, text="Mod added.")
             # Inform group to notify that a new user can become a candidate
             bot.sendMessage(group_id, text="Mod " + mod_candidate.name + " added.")

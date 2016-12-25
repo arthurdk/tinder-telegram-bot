@@ -2,25 +2,23 @@
 
 
 if [ -z "$PREDICTION_BACKEND" ]; then
-    PREDICTION_BACKEND = None
+    PREDICTION_BACKEND=None
 fi
 
 if [ -z "$GUGGY_API_KEY" ]; then
-    GUGGY_API_KEY = None
+    GUGGY_API_KEY=None
 fi
 
 if [ -z "$LOCATION_BACKEND" ]; then
-    LOCATION_BACKEND = http://nominatim.openstreetmap.org/search/
+    LOCATION_BACKEND=http://nominatim.openstreetmap.org/search/
 fi
 
 
-mkdir /votes
-# LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
 cat > $ROOT_FOLDER/bot_app/settings.py << EOL
 from bot_app.prediction import *
 KEY = "$BOT_KEY"
 DB_NAME = 'tinderbot.sqlite3'
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 settings_defaults = {
     "chat_mode": "all",  # Modes are off, owner and all
@@ -44,4 +42,5 @@ location_search_url = "$LOCATION_BACKEND"
 data_retrieval_path = "/votes/"
 EOL
 
-python $ROOT_FOLDER/bot_app/Bot.py
+cd $ROOT_FOLDER
+python bot_app/Bot.py

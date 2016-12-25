@@ -1,7 +1,20 @@
 # tinder-telegram-bot
 Unofficial Telegram bot for choosing the perfect Tinder match with your mates (or alone).
 
-The bot is working both in a group conversation and in private conversation, the main feature is that person in the chat decide if the user will be liked/disliked.
+The bot is working both in a group conversation and in private conversation.
+
+Features:
+
+* Vote with your friends to decide if the user will be liked/disliked.
+* Chat with matches
+* Move around the world easily
+
+
+The bot is also able to try to determinate the likeliness for the group to like or not an user. This `prediction` feature is based on picture analysis and make use of neural network that learn on **YOUR** votes (if the parameter is turned on).
+
+**Note**: Please remember that predictions are here to make the bot more alive and funny to use, but are not to be taken seriously as this is not exact science at all (you would need to have thousands of picture for the bot to start to be accurate accordingly to **YOUR** previous votes.
+
+**Note 2**: For now prediction are made based on our choices.
 
 ## Rules
 
@@ -26,6 +39,7 @@ _Logging in with your Tinder account:_
 
 1. Use /set_account
 2. The bot will ask you for your facebook token. Just send it plain.
+3. Use `/unlink` when your Tinder account unlinked from the bot
 
 _Searching for matches:_
 
@@ -77,6 +91,7 @@ I did not test those personally so use it at your own risks.
 #### Android
 
 Note: This was tested by not having the Facebook application on the phone but it could also work.
+
 * Download a package sniffer on your phone like [Package Capture](https://play.google.com/store/apps/details?id=app.greyshirts.sslcapture&hl=en)
 * Logout of your Tinder account
 * Close other apps (you'll have less package in the app)
@@ -138,24 +153,34 @@ pip3 install -r requirements.txt
 Create file containing the bot api key.
 ```
 cat > settings.py << EOL
-from bot_app.prediction import *
-KEY = "$BOT_KEY"
-DB_NAME = 'tinderbot.sqlite3'
+from bot_app.prediction import LoveByHuguesVerlin
+
+KEY = "KEY"
+DB_NAME = './data/tinderbot.sqlite3'
 DEBUG_MODE = False
 
-chat_mode_default = "all"  # Modes are off, owner and all
-max_poll_range_size_default = "100"
-max_send_range_size_default = "10"
-min_votes_before_timeout_default = "1"
-min_timeout_default = "10"
-max_timeout_default = "600"
-send_block_time_default = "10"
-poll_block_time_default = "10"
-#blind_mode_default = FlexibleBoolean("False", is_value=True)
-matches_cache_time_default = "60"
-prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
+settings_defaults = {
+    "chat_mode": "off",  # Modes are off, owner and all
+    "max_poll_range_size": "100",
+    "max_send_range_size": "1",
+    "min_votes_before_timeout": "1",
+    "min_timeout": "10",
+    "max_timeout": "86400",
+    "send_block_time": "10",
+    "poll_block_time": "10",
+    "blind_mode": "False",
+    "matches_cache_time": "60",
+    "timeout_mode": "dynamic",
+    "prediction": "false",
+    "store_votes": "false"
+}
 
-data_retrieval_path = "/votes/"
+
+# Get your key on their website
+guggy_api_key = None
+prediction_backend = None
+location_search_url = "http://nominatim.openstreetmap.org/search/"
+data_retrieval_path = "./data/"
 EOL
 ```
 

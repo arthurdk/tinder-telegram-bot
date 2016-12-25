@@ -44,7 +44,7 @@ def start(bot: Bot, update: Update):
     :return:
     """
     chat_id = update.message.chat_id
-    # TODO if using already loging in -> do not display welcome message
+    # TODO if using already logging in -> do not display welcome message
     send_message(bot, chat_id, "welcome")
 
 

@@ -9,6 +9,10 @@ if [ -z "$GUGGY_API_KEY" ]; then
     GUGGY_API_KEY = None
 fi
 
+if [ -z "$LOCATION_BACKEND" ]; then
+    LOCATION_BACKEND = http://nominatim.openstreetmap.org/search/
+fi
+
 
 mkdir /votes
 # LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
@@ -29,12 +33,14 @@ settings_defaults = {
     "poll_block_time": "10",
     "blind_mode": "False",
     "matches_cache_time": "60",
-    "timeout_mode": "dynamic"
+    "timeout_mode": "dynamic",
+    "prediction": "true",
+    "store_votes": "true"
 }
 
 guggy_api_key = "$GUGGY_API_KEY"
-prediction_backend = LoveByHuguesVerlin("http://api.love.huguesverlin.fr/api/predict?user=%s")
-location_search_url = "http://nominatim.openstreetmap.org/search/"
+prediction_backend = $PREDICTION_BACKEND
+location_search_url = "$LOCATION_BACKEND"
 data_retrieval_path = "/votes/"
 EOL
 

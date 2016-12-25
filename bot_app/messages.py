@@ -56,7 +56,7 @@ messages["welcome"] = 'Hey ! \nFirst things first, you will need to set your aut
                       'If you need help, type /help!'
 messages["location_updated"] = "Location updated. (this may not work, due to Tinder API)"
 messages["setting_updated"] = "Setting updated."
-messages["about"] = "https://github.com/arthurdk/tinder-telegram-bot"
+messages["about"] = "I'm open source, you can learn more about me on Github: https://github.com/arthurdk/tinder-telegram-bot"
 messages["start_chat"] = "Please start a private conversation with me first. Follow the link: %s"
 messages["send_token"] = "Please send me your authentication token in our private conversation %s "
 messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"

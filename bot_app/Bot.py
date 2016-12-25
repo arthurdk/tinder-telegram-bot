@@ -28,7 +28,12 @@ import bot_app.inline as inline
 
 from bot_app.settings import location_search_url
 
-logging.basicConfig(level=logging.DEBUG,
+if settings.DEBUG_MODE:
+    log_level = logging.DEBUG
+else:
+    log_level = logging.ERROR
+
+logging.basicConfig(level=log_level,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
@@ -126,6 +131,7 @@ def set_timeout(bot, update, args):
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
 
+@run_async
 def set_auto(bot, update):
     """
     Handles /auto command
@@ -469,6 +475,7 @@ def message_handler(bot, update):
                 data.conversations[group_id].current_mod_candidate = None
 
 
+@run_async
 def send_about(bot, update):
     """
     Send the about message from the /about command

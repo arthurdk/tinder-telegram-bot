@@ -15,7 +15,8 @@ settings_defaults = {
     "poll_block_time": "10",
     "blind_mode": "False",
     "matches_cache_time": "60",
-    "timeout_mode": "dynamic"
+    "timeout_mode": "dynamic",
+    "prediction": "false"
 }
 
 # Get your key on their website

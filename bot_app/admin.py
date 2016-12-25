@@ -19,7 +19,7 @@ class Setting:
         return "`" + self.name + "`: `" + str(value) + "` [" + str(self.valid_values) + "]"
 
     def help_str(self):
-        return " - /" + self.name + " " + str(self.valid_values) + ": " + self.help_message
+        return " - `" + self.name + "` " + str(self.valid_values) + ": " + self.help_message
 
     def __contains__(self, item):
         return item in self.valid_values
@@ -27,6 +27,9 @@ class Setting:
 
 class Settings:
     settings = {
+        "prediction": Setting("prediction", Boolean(),
+                             "If turned on, the bot will try to predict if you are more likely to like or dislike "
+                             "an user. Note: if this option is disabled in the bot settings then enabling will do nothing."),
         "chat_mode": Setting("chat_mode", String(["off", "owner", "all"]),
                              "Different modes for chatting. Off means /msg and /poll_msgs are disabled. Owner means, "
                              "only the owner of the current account can use /msg, everybody can use /poll_msgs. All "

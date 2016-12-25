@@ -49,9 +49,11 @@ class Conversation:
         return likes, dislikes
 
     def get_matches(self):
-        # Matches cache
+        """
+        Retrieve matches and store them in cache
+        :return:
+        """
         self.matches_cache_lock.acquire()
-
         if time.time() - self.matches_cache_time > int(self.settings.get_setting("matches_cache_time")) \
                 or self.matches_cache is None:
             self.matches_cache_time = time.time()

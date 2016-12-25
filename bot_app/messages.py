@@ -77,6 +77,7 @@ error_messages["unknown_command"] = "I'm sorry Dave I'm afraid I can't do that."
 error_messages["tinder_timeout"] = "Tinder account needs to be reconnected to the bot, please use /set_account"
 error_messages["auth_failed"] = "Authentication failed! Please try again."
 error_messages["new_vote_failed"] = "Failed to start new vote."
+error_messages["no_more_users"] = "There are no other users available."
 ### Functions for sending messages to the user ###
 
 

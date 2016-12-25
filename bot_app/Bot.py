@@ -222,7 +222,7 @@ def start_vote(bot, job):
                     retry += 1
                 # Check if there are still users in the queue
                 if len(conversation.users) == 0:
-                    bot.sendMessage(chat_id, text="There are no other users available.")
+                    send_error(bot=bot, chat_id=chat_id, name="no_more_users")
                 else:
                     # Empty the vote list
                     conversation.current_votes = {}
@@ -242,12 +242,12 @@ def start_vote(bot, job):
                     # TODO => refactor properly
                     conversation.vote_msg = msg
                     conversation.result_msg = msg
-                    # Launch prediction
-                    # TODO only launch prediction is chat allowed it
-                    prediction_job = Job(prediction.do_prediction, 0,
-                                         repeat=False,
-                                         context=(chat_id, conversation.current_user.id, msg.message_id))
-                    job_queue.put(prediction_job)
+
+                    if conversation.settings.get_setting(setting="prediction"):
+                        prediction_job = Job(prediction.do_prediction, 0,
+                                             repeat=False,
+                                             context=(chat_id, conversation.current_user.id, msg.message_id))
+                        job_queue.put(prediction_job)
             except BaseException as e: # TODO Handles pynder request error !
                 conversation.set_is_voting(False)
                 send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")

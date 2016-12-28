@@ -260,12 +260,18 @@ def start_vote(bot, job):
                     session.do_reconnect(bot=bot, chat_id=chat_id, conversation=conversation)
                 else:
                     send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
-                traceback.print_exc()
+                if settings.DEBUG_MODE:
+                    traceback.print_exc()
             except KeyError as e:
+                conversation.set_is_voting(False)
+                if settings.DEBUG_MODE:
+                    traceback.print_exc()
                 send_error(bot=bot, chat_id=chat_id, name="no_location")
             except BaseException as e:
+                conversation.set_is_voting(False)
                 send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
-                traceback.print_exc()
+                if settings.DEBUG_MODE:
+                    traceback.print_exc()
         else:
             bot.sendMessage(chat_id, text="Current vote is not finished yet.",
                             reply_to_message_id=conversation.vote_msg.message_id)

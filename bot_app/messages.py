@@ -63,6 +63,7 @@ messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"
 messages["unblocking_successful"] = "Sending and polling were unblocked."
 messages["switch_private"] = "🔒 Switch to private chat"
 messages["back_group"] = "Switch to group"
+messages["new_match"] = "You have a new match."
 messages["account_unlinked"] = "Account successfully unlinked."
 messages["ask_for_token"] = "Please, send me your facebook authentication token.\nNote: This token " \
                             "is only for accessing your Tinder account, your Facebook account is safe."

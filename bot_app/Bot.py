@@ -423,7 +423,7 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
         job_queue.put(job)
 
 
-def message_handler(bot: Bot, update: Update):
+def message_handler(bot: Bot, update: Update, job_queue):
     """
     Handles incoming text based messages
     :param bot:
@@ -441,7 +441,7 @@ def message_handler(bot: Bot, update: Update):
     # Check if someone is trying to login
     elif sender in data.change_account_queries:
         session.do_login(bot=bot, chat_id=chat_id, sender=sender,
-                         token=update.message.text)
+                         token=update.message.text, job_queue=job_queue)
 
     # Ignore reply to the bot in groups
     elif sender in data.change_account_queries.keys():
@@ -571,7 +571,7 @@ def main():
     dispatcher.add_handler(CommandHandler('unlink', unlink))
     dispatcher.add_handler(CommandHandler('matches', send_matches))
     dispatcher.add_handler(CallbackQueryHandler(inline.do_press_inline_button, pass_job_queue=True))
-    dispatcher.add_handler(MessageHandler(Filters.text, message_handler))
+    dispatcher.add_handler(MessageHandler(Filters.text, message_handler, pass_job_queue=True))
     dispatcher.add_handler(MessageHandler(Filters.location, update_location))
     dispatcher.add_handler(CommandHandler('new_vote', start_vote_session, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler('timeout', set_timeout, pass_args=True))

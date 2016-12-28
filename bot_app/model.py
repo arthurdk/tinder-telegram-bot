@@ -29,6 +29,7 @@ class Conversation:
         self.cur_user_insta_private = None
         self.current_mod_candidate = None
         self.token = token
+        self.prev_nb_match = None
 
     def refresh_users(self):
         self.users = self.session.nearby_users()
@@ -54,6 +55,7 @@ class Conversation:
         Retrieve matches and store them in cache
         :return:
         """
+        self.prev_nb_match = None if self.matches_cache is None else len(self.matches_cache)
         self.matches_cache_lock.acquire()
         if time.time() - self.matches_cache_time > int(self.settings.get_setting("matches_cache_time")) \
                 or self.matches_cache is None:

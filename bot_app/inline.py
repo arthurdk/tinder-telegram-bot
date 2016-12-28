@@ -120,6 +120,7 @@ def inline_preview(bot: Bot, update):
     results = list()
     last_idx = 0
     cache = 60
+    cpt = 0
     if mode == "matches":
         matches = conversation.get_matches()
 
@@ -133,6 +134,9 @@ def inline_preview(bot: Bot, update):
                                                       thumb_url=thumb,
                                                       photo_url=full))
                 last_idx = idx + 1
+                cpt += 1
+                if cpt > 20:
+                    break
     elif mode == "pictures":
         cur_user = conversation.current_user
         thumbs = cur_user.get_photos(width='84')

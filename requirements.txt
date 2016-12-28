@@ -1,7 +1,6 @@
 peewee
 certifi==2016.9.26
 future==0.16.0
-pynder==0.0.11
 python-dateutil==2.6.0
 python-telegram-bot==5.3.0
 requests==2.12.4

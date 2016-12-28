@@ -6,7 +6,7 @@ import time
 
 class Conversation:
 
-    def __init__(self, group_id, session, owner):
+    def __init__(self, group_id, session, owner, token):
         # The chat id (private ou group id)
         self.group_id = group_id
         self.session = session
@@ -28,6 +28,7 @@ class Conversation:
         self.block_sending_until = 0
         self.cur_user_insta_private = None
         self.current_mod_candidate = None
+        self.token = token
 
     def refresh_users(self):
         self.users = self.session.nearby_users()

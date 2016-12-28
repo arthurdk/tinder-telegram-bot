@@ -74,10 +74,11 @@ error_messages["unknown_match_id"] = "Unknown match-id."
 error_messages["command_not_allowed"] = "This command must not be executed by the account owner."
 error_messages["range_too_large"] = "The given range is too large."
 error_messages["unknown_command"] = "I'm sorry Dave I'm afraid I can't do that."
-error_messages["tinder_timeout"] = "Tinder account needs to be reconnected to the bot, please use /set_account"
-error_messages["auth_failed"] = "Authentication failed! Please try again."
-error_messages["new_vote_failed"] = "Failed to start new vote."
+error_messages["tinder_timeout"] = "Tinder account timed out, I'll try reconnecting the chat to Tinder right away."
+error_messages["auth_failed"] = "Authentication failed! Please try again using /set_account"
+error_messages["new_vote_failed"] = "Failed to start new vote, please try again."
 error_messages["no_more_users"] = "There are no other users available."
+error_messages["failed_to_vote"] = "I failed to like/dislike this user on Tinder."
 ### Functions for sending messages to the user ###
 
 

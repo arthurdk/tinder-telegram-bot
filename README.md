@@ -141,7 +141,7 @@ Note: This was tested on Ubuntu 16.04 based distribution only.
 Install Pynder (Tinder client)
 ```
 git clone https://github.com/charliewolf/pynder.git \
-&& cd pynder && python setup.py install
+&& cd pynder && python3 setup.py install
 ```
 
 Install dependencies:
@@ -156,7 +156,7 @@ cat > settings.py << EOL
 from bot_app.prediction import LoveByHuguesVerlin
 
 KEY = "KEY"
-DB_NAME = './data/tinderbot.sqlite3'
+DB_NAME = './tinderbot.sqlite3'
 DEBUG_MODE = False
 
 settings_defaults = {

@@ -222,6 +222,7 @@ def start_vote(bot, job):
             retry = 0
             bot.sendChatAction(chat_id=chat_id, action=ChatAction.UPLOAD_PHOTO)
             try:
+
                 while retry < 3 and len(conversation.users) == 0:
                     conversation.refresh_users()
                     retry += 1
@@ -253,8 +254,14 @@ def start_vote(bot, job):
                                              repeat=False,
                                              context=(chat_id, conversation.current_user.id, msg.message_id))
                         job_queue.put(prediction_job)
-            except BaseException as e:  # TODO Handles pynder request error !
+            except pynder.errors.RequestError as e:
                 conversation.set_is_voting(False)
+                if e.args[0] == 401:
+                    session.do_reconnect(bot=bot, chat_id=chat_id, conversation=conversation)
+                else:
+                    send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
+                traceback.print_exc()
+            except BaseException as e:
                 send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
                 traceback.print_exc()
         else:
@@ -394,8 +401,11 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
             conversation.current_user.like()
         else:
             conversation.current_user.dislike()
-    except pynder.errors.RequestError:
-        send_error(bot=bot, chat_id=chat_id, name="tinder_timeout")
+    except pynder.errors.RequestError as e:
+        if e.args[0] == 401:
+            session.do_reconnect(bot=bot, chat_id=chat_id, conversation=conversation)
+        else:
+            send_error(bot=bot, chat_id=chat_id, name="failed_to_vote")
     # Store vote for future prediction processing
     if conversation.settings.get_setting("store_votes"):
         data_retrieval.do_store_vote(user_id=conversation.current_user.id,

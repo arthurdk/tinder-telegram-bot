@@ -141,7 +141,7 @@ Note: This was tested on Ubuntu 16.04 based distribution only.
 Install Pynder (Tinder client)
 ```
 git clone https://github.com/charliewolf/pynder.git \
-&& cd pynder && python3 setup.py install
+&& cd pynder && git checkout d5389088d11ade0b5227b0c594695f19e7936399 && python3 setup.py install
 ```
 
 Install dependencies:

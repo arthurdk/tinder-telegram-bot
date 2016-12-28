@@ -261,6 +261,8 @@ def start_vote(bot, job):
                 else:
                     send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
                 traceback.print_exc()
+            except KeyError as e:
+                send_error(bot=bot, chat_id=chat_id, name="no_location")
             except BaseException as e:
                 send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
                 traceback.print_exc()

@@ -79,6 +79,7 @@ error_messages["auth_failed"] = "Authentication failed! Please try again using /
 error_messages["new_vote_failed"] = "Failed to start new vote, please try again."
 error_messages["no_more_users"] = "There are no other users available."
 error_messages["failed_to_vote"] = "I failed to like/dislike this user on Tinder."
+error_messages["no_location"] = "Location expired. Please use /location and start voting again."
 ### Functions for sending messages to the user ###
 
 

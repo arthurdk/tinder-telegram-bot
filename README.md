@@ -7,6 +7,7 @@ Features:
 
 * Vote with your friends to decide if the user will be liked/disliked.
 * Chat with matches
+* Use Tinder without having the app installed ;)
 * Move around the world easily
 
 

@@ -228,6 +228,7 @@ def start_vote(bot, job):
                     retry += 1
                 # Check if there are still users in the queue
                 if len(conversation.users) == 0:
+                    conversation.set_is_voting(False)
                     send_error(bot=bot, chat_id=chat_id, name="no_more_users")
                 else:
                     # Empty the vote list

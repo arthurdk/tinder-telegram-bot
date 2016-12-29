@@ -55,7 +55,7 @@ class Settings:
                                     "the /poll_msgs command. Example: poll_block_time is 5 and we send "
                                     "'/poll_msgs 2,4-6', then the block time will be 20 seconds."),
         "blind_mode": Setting("blind_mode", Boolean(), "If turned one, it will hide the vote count."),
-        "matches_cache_time": Setting("matches_cache_time", Range(0, 60),
+        "matches_cache_time": Setting("matches_cache_time", Range(60, 600),
                                       "The time in seconds the matches for the /matches command are cached."),
         "timeout_mode": Setting("timeout_mode", String(["first_vote", "required_votes", "dynamic"]),
                                 "Different modes for the timeout. 'first_vote' starts the timeout as soon as the first "

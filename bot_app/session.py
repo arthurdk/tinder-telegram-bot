@@ -35,7 +35,8 @@ def do_login(bot, chat_id: str, sender: str, token: str, job_queue: JobQueue):
         del data.change_account_queries[sender]
 
         # Launch get matches background job
-        job = Job(job_refresh_matches, 60.0, repeat=True, context=conversation)
+        cache_time = int(conversation.settings.get_setting("matches_cache_time"))
+        job = Job(job_refresh_matches, cache_time + 1, repeat=True, context=conversation)
         job_queue.put(job,  next_t=0.0)
 
     except pynder.errors.RequestError:
@@ -51,7 +52,6 @@ def job_refresh_matches(bot, job):
         matches = conversation.get_matches()
         if conversation.prev_nb_match is not None and len(matches) > conversation.prev_nb_match:
             messages.send_message(bot=bot, chat_id=conversation.group_id, name="new_match")
-
     else:
         job.schedule_removal()
 

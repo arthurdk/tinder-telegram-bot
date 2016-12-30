@@ -17,6 +17,19 @@ if [ -z "$DEBUG" ]; then
     DEBUG=False
 fi
 
+if [ -z "$CHAT_MODE" ]; then
+    CHAT_MODE=owner
+fi
+
+if [ -z "$PREDICTION" ]; then
+    PREDICTION=true
+fi
+
+if [ -z "$STORE_VOTES" ]; then
+    STORE_VOTES=false
+fi
+
+
 
 cat > $ROOT_FOLDER/bot_app/settings.py << EOL
 from bot_app.prediction import *
@@ -25,7 +38,7 @@ DB_NAME = 'tinderbot.sqlite3'
 DEBUG_MODE = $DEBUG
 
 settings_defaults = {
-    "chat_mode": "all",  # Modes are off, owner and all
+    "chat_mode": "$CHAT_MODE",  #  off, owner and all
     "max_poll_range_size": "100",
     "max_send_range_size": "1",
     "min_votes_before_timeout": "3",
@@ -35,9 +48,9 @@ settings_defaults = {
     "poll_block_time": "10",
     "blind_mode": "False",
     "matches_cache_time": "60",
-    "timeout_mode": "dynamic",
-    "prediction": "true",
-    "store_votes": "true"
+    "timeout_mode": "required_votes",
+    "prediction": "$PREDICTION",
+    "store_votes": "$STORE_VOTES"
 }
 
 guggy_api_key = "$GUGGY_API_KEY"

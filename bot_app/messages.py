@@ -52,12 +52,12 @@ help_messages["help"] = "*Usage of the bot:*\n" \
 # All normal messages sent to the user
 messages = {}
 messages["welcome"] = 'Hey ! \nFirst things first, you will need to set your authentication ' \
-                      'token using the /set_account command if you want to link your Tinder account.\n' \
+                      'token using the /set_account command in the chat you want the bot to be enabled, if you want to link your Tinder account.\n' \
                       'If you need help, type /help!'
 messages["location_updated"] = "Location updated. (this may not work, due to Tinder API)"
 messages["setting_updated"] = "Setting updated."
 messages["about"] = "I'm open source, you can learn more about me on Github: https://github.com/arthurdk/tinder-telegram-bot"
-messages["start_chat"] = "Please start a private conversation with me first. Follow the link: %s"
+messages["start_chat"] = "Please start a private conversation with me first. Follow the link: %s and then press 'Start' and then come back to this chat."
 messages["send_token"] = "Please send me your authentication token in *our private conversation* %s "
 messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"
 messages["unblocking_successful"] = "Sending and polling were unblocked."
@@ -203,9 +203,12 @@ def send_private_link(bot, user_id, url):
 
 def notify_start_private_chat(bot, chat_id, incoming_message=None):
     if incoming_message is not None and incoming_message.from_user.username != bot.username:
+        import bot_app.keyboards as keyboards
+        reply_markup = keyboards.switch_private_chat_keyboard(bot.username)
         bot.sendMessage(chat_id,
                         text=messages["start_chat"] % bot.name,
-                        reply_to_message_id=incoming_message.message_id)
+                        reply_to_message_id=incoming_message.message_id,
+                        reply_markup=reply_markup)
     else:
         bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name)
 
@@ -235,7 +238,6 @@ def notify_send_token(bot, chat_id, reply_to_message_id, is_group, group_name, r
                         text=msg,
                         reply_to_message_id=reply_to_message_id,
                         reply_markup=reply_markup)
-
 
 
 def send_error(bot, chat_id, name):

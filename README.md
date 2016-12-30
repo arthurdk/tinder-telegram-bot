@@ -53,17 +53,19 @@ An instance of the bot is available on Telegram, but it's hosted on a small mach
 
 **WARNING** Anyway I don't advise you to trust any instance of this bot as your token will be available in plain text to any of those bot owner, so they will basically be able to login on Tinder with your account.
 
-[Add the bot to a group](https://telegram.me/tindergroupbot?startgroup=groupwithtinder)
+[Add the bot to a group](https://telegram.me/matchpartybot?startgroup=groupwithtinder)
 
-[Start a private conversation with the bot](https://telegram.me/tindergroupbot?start=yes )
+[Start a private conversation with the bot](https://telegram.me/matchpartybot?start=yes )
 
 ## Screenshots
+
+If you are reading this text on DockerHub go to the [arthurdk/tinder-telegram-bot](https://github.com/arthurdk/tinder-telegram-bot) GitHub repository to see screenshots.
 
 * Connect your account and start voting
 
 <img src="http://imgur.com/BkHSqdq.png"  data-canonical-src="http://imgur.com/BkHSqdq.png" width="300" height="500" />
 
-* View other pictures
+* View more pictures
 
 <img src="http://imgur.com/CR0zq42.png"  data-canonical-src="http://imgur.com/CR0zq42.png" width="300" height="500" />
 
@@ -164,12 +166,28 @@ More info available on [this bot Docker Hub repository](https://hub.docker.com/r
 
 | Variable      | Description                                                          | Values             | Default value |
 |---------------|----------------------------------------------------------------------|--------------------|---------------|
-| BOT_KEY       | Your Telegram bot API key                                            | your_key           | -             |
-| GUGGY_API_KEY | API Key for displaying GIF and stickers                              | None, your_key     | None          |
+| BOT_KEY       | Your Telegram bot API key                                            | "your_key"         | -             |
+| GUGGY_API_KEY | API Key for displaying GIF and stickers                              | None, "your_key"   | None          |
 | DEBUG         | Toggle debugging mode                                                | True, False        | False         |
 | CHAT_MODE     | The default chat mode                                                | off, owner and all | owner         |
 | PREDICTION    | Toggle prediction by default  (a prediction backend must be enabled) | true, false        | true          |
 | STORE_VOTES   | Toggle storing vote results by default                               | true, false        | false         |
+
+* Example command
+
+```
+docker pull arthurdk/tinder-telegram-bot:latest && \
+docker run -d \
+ -v /votes:/votes  \
+ -e GUGGY_API_KEY="your_key"  \
+ -e BOT_KEY="your_key" \
+ -e DEBUG=False \
+ -e CHAT_MODE=all \
+ -e STORE_VOTES=true \
+ --restart=always \
+ --name tinder-bot \
+arthurdk/tinder-telegram-bot:latest
+```
 
 ### Docker (build)
 

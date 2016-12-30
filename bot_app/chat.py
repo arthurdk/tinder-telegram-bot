@@ -1,4 +1,5 @@
 from telegram.ext.dispatcher import run_async
+from telegram import ChatAction, Bot
 from bot_app.messages import *
 from bot_app.admin import *
 import bot_app.data as data
@@ -7,7 +8,7 @@ import time
 
 
 @run_async
-def send_message(bot, update, args):
+def send_message(bot: Bot, update, args):
     chat_id = update.message.chat_id
     sender = update.message.from_user.id
 
@@ -74,7 +75,7 @@ def poll_last_messages(match, n):
     return match.messages[-n:]
 
 
-def get_match(bot, update, id, matches=None):
+def get_match(bot: Bot, update, id, matches=None):
     global data
     chat_id = update.message.chat_id
 
@@ -88,7 +89,7 @@ def get_match(bot, update, id, matches=None):
     return matches[id]
 
 
-def parse_range(bot, chat_id, range_string, max_size):
+def parse_range(bot: Bot, chat_id, range_string, max_size):
     ranges = range_string.split(',')
     result = []
 
@@ -149,7 +150,7 @@ def poll_last_messages_as_string(match, id, n):
 
 
 @run_async
-def poll_messages(bot, update, args, only_unanswered=False):
+def poll_messages(bot: Bot, update, args, only_unanswered=False):
     global data
     chat_id = update.message.chat_id
 
@@ -196,8 +197,8 @@ def poll_messages(bot, update, args, only_unanswered=False):
 
     if n > 100:
         send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "<n> must be smaller than a hundred.")
-
-    matches = conversation.session.matches()
+    bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
+    matches = conversation.get_matches()
     my_id = conversation.session.profile.id
     messages_shown = 0
 
@@ -225,11 +226,11 @@ def has_unanswered_messages(my_id, match):
     return my_id != sender_id
 
 
-def poll_unanswered_messages(bot, update, args):
+def poll_unanswered_messages(bot: Bot, update, args):
     poll_messages(bot, update, args, True)
 
 
-def unblock(bot, update):
+def unblock(bot: Bot, update):
     global data
     chat_id = update.message.chat_id
     conversation = data.conversations[chat_id]

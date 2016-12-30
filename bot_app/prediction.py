@@ -70,9 +70,8 @@ class OneLinerPrediction(BasePrediction):
         # Would be nice to load from file
         line = {Categories.VERY_HOT: ["Dat ass",
                                       "These eyes make me undress",
-                                      "Booooobs!",
                                       "Hot ten!",
-                                      "Ten of ten!",
+                                      "Ten out of ten!",
                                       "Will you marry me?",
                                       "Welcome to heaven",
                                       "Cute",

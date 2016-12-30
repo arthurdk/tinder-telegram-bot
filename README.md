@@ -11,11 +11,13 @@ Features:
 * Move around the world easily
 
 
-The bot is also able to try to determinate the likeliness for the group to like or not an user. This `prediction` feature is based on picture analysis and make use of neural network that learn on **YOUR** votes (if the parameter is turned on).
+The bot is also able to try to determinate the **likeliness** for the group to like or not an user. This `prediction` feature is based on picture analysis and make use of neural network that learn on **YOUR** votes (if the parameter is turned on).
 
 **Note**: Please remember that predictions are here to make the bot more alive and funny to use, but are not to be taken seriously as this is not exact science at all (you would need to have thousands of picture for the bot to start to be accurate accordingly to **YOUR** previous votes.
 
 **Note 2**: For now prediction are made based on our choices.
+
+**Note 3**: The prediction code is not yet included in the bot :-( 
 
 ## Rules
 
@@ -23,7 +25,7 @@ The bot is also able to try to determinate the likeliness for the group to like 
 
 ## Online demo
 
-An instance of the bot is available on Telegram, but it's hosted on a small machine so it may be highly unavailable if lot of people are using it.
+An instance of the bot is available on Telegram, but it's hosted on a small machine so it may be highly unavailable if lot of people are using it or just rebooted due to updates (so you'll have to login again).
 
 [Add the bot to a group](https://telegram.me/tindergroupbot?startgroup=groupwithtinder)
 
@@ -111,7 +113,11 @@ Note: Vote data is stored under /votes.
 
 Simply write your bot api key in the dedicated environment variable and launch the container:
 ```
-docker run -d -e BOT_KEY="YOUR_BOT_API_KEY" --restart=always --name tinder-bot arthurdk/tinder-telegram-bot:dev
+docker run -d \ 
+ -e BOT_KEY="YOUR_BOT_API_KEY" \ 
+ --restart=always \ 
+ --name tinder-bot \ 
+ arthurdk/tinder-telegram-bot:latest
 ```
 
 More info available on [this bot Docker Hub repository](https://hub.docker.com/r/arthurdk/tinder-telegram-bot/)
@@ -132,18 +138,24 @@ More info available on [this bot Docker Hub repository](https://hub.docker.com/r
 First, retrieve sources:
 
 ```
-git clone https://github.com/arthurdk/tinder-telegram-bot.git && cd tinder-telegram-bot
+git clone https://github.com/arthurdk/tinder-telegram-bot.git \
+ && cd tinder-telegram-bot
 ```
 
 Then, build the image:
+
 ```
-docker build -f docker/Dockerfile -t <your-repo-name>/tinder-telegram-bot:dev .
+docker build -f docker/Dockerfile \
+ -t <your-repo-name>/tinder-telegram-bot:latest .
 ```
 
 Finally, write your bot api key in the dedicated environment variable and launch the container:
 
 ```
-docker run -d -e BOT_KEY="YOUR_BOT_API_KEY" --restart=always --name tinder-bot <your-repo-name>/tinder-telegram-bot:dev
+docker run -d \
+ -e BOT_KEY="YOUR_BOT_API_KEY" \ 
+ --restart=always \ 
+ --name tinder-bot <your-repo-name>/tinder-telegram-bot:latest
 ```
 
 ### Python (Dev)
@@ -151,18 +163,23 @@ docker run -d -e BOT_KEY="YOUR_BOT_API_KEY" --restart=always --name tinder-bot <
 Note: This was tested on Ubuntu 16.04 based distribution only.
 
 Install Pynder (Tinder client)
+
 ```
 git clone https://github.com/charliewolf/pynder.git \
-&& cd pynder && git checkout d5389088d11ade0b5227b0c594695f19e7936399 && python3 setup.py install
+ && cd pynder \
+ && git checkout d5389088d11ade0b5227b0c594695f19e7936399 \ 
+ && python3 setup.py install
 ```
 
 Install dependencies:
+
 ```
 pip3 install -r requirements.txt
 ```
 
 
 Create file containing the bot api key.
+
 ```
 cat > settings.py << EOL
 from bot_app.prediction import LoveByHuguesVerlin
@@ -197,8 +214,15 @@ EOL
 ```
 
 Launch the bot:
+
 ```
 python3.5 bot_app/Bot.py
+```
+
+#### Troubleshooting:
+In case the module is not recognized:
+```
+export PYTHONPATH=.
 ```
 
 ### In chat autocompletion
@@ -228,11 +252,10 @@ And do not forget to delete your bot from the conversation and add it again.
 
 If you are in a private conversation with the bot delete the conversation and start afresh.
 
-#### Troubleshooting:
-In case the module is not recognized:
-```
-export PYTHONPATH=.
-```
+## Contributing
+
+Any contribution is welcomed (feature request, issues, pull request...).
+
 
 ## License
 ----

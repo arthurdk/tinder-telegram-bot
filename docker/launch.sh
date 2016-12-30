@@ -41,7 +41,7 @@ settings_defaults = {
     "chat_mode": "$CHAT_MODE",  #  off, owner and all
     "max_poll_range_size": "100",
     "max_send_range_size": "1",
-    "min_votes_before_timeout": "3",
+    "min_votes_before_timeout": "1",
     "min_timeout": "10",
     "max_timeout": "86400",
     "send_block_time": "10",

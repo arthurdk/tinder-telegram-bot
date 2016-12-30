@@ -397,9 +397,14 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
     current_vote = len(conversation.get_votes())
     max_vote = conversation.settings.get_setting("min_votes_before_timeout")
     caption = get_caption_match(conversation.current_user, current_vote, max_vote, bio=False)
-    bot.editMessageCaption(chat_id=msg.chat_id,
-                           message_id=msg.message_id,
-                           caption=caption + "\n%s" % message)
+    try:
+        bot.editMessageCaption(chat_id=msg.chat_id,
+                               message_id=msg.message_id,
+                               caption=caption + "\n%s" % message)
+    except BaseException:
+        traceback.print_exc()
+    conversation.set_is_voting(False)
+    conversation.is_alarm_set = False
     try:
         if likes > dislikes:
             conversation.current_user.like()
@@ -416,8 +421,6 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
                                      chat_id=chat_id,
                                      is_like=likes > dislikes)
 
-    conversation.set_is_voting(False)
-    conversation.is_alarm_set = False
     # If the bot is set to auto -> launch another vote
     if conversation.auto:
         job = Job(start_vote, 0, repeat=False, context=(chat_id, job_queue))

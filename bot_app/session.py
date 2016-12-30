@@ -7,6 +7,7 @@ import bot_app.data as data
 import bot_app.messages as messages
 from telegram.ext.dispatcher import run_async
 
+
 def create_pynder_session(fb_token):
     return pynder.Session(facebook_token=fb_token)
 
@@ -49,7 +50,10 @@ def job_refresh_matches(bot, job):
 
     conversation = job.context
     if conversation in data.conversations.values():
-        matches = conversation.get_matches()
+        try:
+            matches = conversation.get_matches()
+        except pynder.errors.RequestError:
+            do_reconnect(bot=bot, chat_id=conversation.group_id, conversation=conversation)
         if conversation.prev_nb_match is not None and len(matches) > conversation.prev_nb_match:
             messages.send_message(bot=bot, chat_id=conversation.group_id, name="new_match")
     else:

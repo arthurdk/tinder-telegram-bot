@@ -2,7 +2,8 @@ from bot_app.keyboards import *
 import threading
 import bot_app.admin as admin
 import time
-
+import pynder
+import traceback
 
 class Conversation:
 
@@ -60,7 +61,19 @@ class Conversation:
         if time.time() - self.matches_cache_time > int(self.settings.get_setting("matches_cache_time")) \
                 or self.matches_cache is None:
             self.matches_cache_time = time.time()
-            self.matches_cache = self.session.matches()
+            retry = 0
+            success = False
+            while retry < 3 and success is False:
+                try:
+                    self.matches_cache = self.session.matches()
+                    success = True
+                except pynder.errors.RequestError as e:
+                    traceback.print_exc()
+                    if e.args[0] == 401:
+                        raise e
+                    else:
+                        retry += 1
+                        self.matches_cache = self.matches_cache if self.matches_cache is not None else []
 
         matches = self.matches_cache
         self.matches_cache_lock.release()

@@ -61,6 +61,7 @@ def job_refresh_matches(bot, job):
 
 
 def do_reconnect(bot, chat_id: str, conversation: Conversation):
+    # TODO insert lock ;)
     messages.send_error(bot=bot, chat_id=chat_id, name="tinder_timeout")
     global data
     try:

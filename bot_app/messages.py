@@ -58,15 +58,18 @@ messages["location_updated"] = "Location updated. (this may not work, due to Tin
 messages["setting_updated"] = "Setting updated."
 messages["about"] = "I'm open source, you can learn more about me on Github: https://github.com/arthurdk/tinder-telegram-bot"
 messages["start_chat"] = "Please start a private conversation with me first. Follow the link: %s"
-messages["send_token"] = "Please send me your authentication token in our private conversation %s "
+messages["send_token"] = "Please send me your authentication token in *our private conversation* %s "
 messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"
 messages["unblocking_successful"] = "Sending and polling were unblocked."
 messages["switch_private"] = "🔒 Switch to private chat"
 messages["back_group"] = "Switch to group"
 messages["new_match"] = "You have a new match."
 messages["account_unlinked"] = "Account successfully unlinked."
-messages["ask_for_token"] = "Please, send me your facebook authentication token.\nNote: This token " \
-                            "is only for accessing your Tinder account, your Facebook account is safe."
+messages["ask_for_token"] = "Please, send me your facebook *authentication token*.\n*Note*: This token " \
+                            "is only for accessing your Tinder account, your Facebook account is *safe*.\n" \
+                            "Don't know how to retrieve this token?\n" \
+                            "➡️ [Retrieving the authentication token]" \
+                            "(https://github.com/arthurdk/tinder-telegram-bot#retrieving-the-authentication-token)"
 
 # Error messages
 error_messages = {}
@@ -142,7 +145,7 @@ def __actual_send_message(bot, chat_id, text):
     """
     try:
         bot.sendMessage(chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
-    except TelegramError:
+    except TelegramError as e:
         bot.sendMessage(chat_id, text=text)
 
 
@@ -221,10 +224,18 @@ def notify_send_token(bot, chat_id, reply_to_message_id, is_group, group_name, r
     msg = messages["send_token"] % bot.name
     if is_group:
         msg += " for the group %s" % group_name
-    bot.sendMessage(chat_id,
-                    text=msg,
-                    reply_to_message_id=reply_to_message_id,
-                    reply_markup=reply_markup)
+    try:
+        bot.sendMessage(chat_id,
+                        text=msg,
+                        reply_to_message_id=reply_to_message_id,
+                        reply_markup=reply_markup,
+                        parse_mode=ParseMode.MARKDOWN)
+    except TelegramError as e:
+        bot.sendMessage(chat_id,
+                        text=msg,
+                        reply_to_message_id=reply_to_message_id,
+                        reply_markup=reply_markup)
+
 
 
 def send_error(bot, chat_id, name):

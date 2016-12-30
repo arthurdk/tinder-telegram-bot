@@ -116,6 +116,17 @@ docker run -d -e BOT_KEY="YOUR_BOT_API_KEY" --restart=always --name tinder-bot a
 
 More info available on [this bot Docker Hub repository](https://hub.docker.com/r/arthurdk/tinder-telegram-bot/)
 
+#### Docker environment variable
+
+| Variable      | Description                                                          | Values             | Default value |
+|---------------|----------------------------------------------------------------------|--------------------|---------------|
+| BOT_KEY       | Your Telegram bot API key                                            | your_key           | -             |
+| GUGGY_API_KEY | API Key for displaying GIF and stickers                              | None, your_key     | None          |
+| DEBUG         | Toggle debugging mode                                                | True, False        | False         |
+| CHAT_MODE     | The default chat mode                                                | off, owner and all | owner         |
+| PREDICTION    | Toggle prediction by default  (a prediction backend must be enabled) | true, false        | true          |
+| STORE_VOTES   | Toggle storing vote results by default                               | true, false        | false         |
+
 ### Docker (build)
 
 First, retrieve sources:

@@ -21,17 +21,57 @@ The bot is also able to try to determinate the **likeliness** for the group to l
 
 ## Rules
 
-* A tie equals to a dislike
+* A tie will result in a dislike
+
+## Table of contents
+
+- [tinder-telegram-bot](#tinder-telegram-bot)
+  - [Rules](#rules)
+  - [Online demo](#online-demo)
+  - [Screenshots](#screenshots)
+  - [Usage](#usage)
+  - [Retrieving the authentication token](#retrieving-the-authentication-token)
+    - [Automated solutions](#automated-solutions)
+      - [Chrome plugin](#chrome-plugin)
+      - [Web app](#web-app)
+    - [Manual solution](#manual-solution)
+      - [Android](#android)
+  - [Installation](#installation)
+    - [Docker (from DockerHub)](#docker-from-dockerhub)
+      - [Docker environment variable](#docker-environment-variable)
+    - [Docker (build)](#docker-build)
+    - [Python (Dev)](#python-dev)
+      - [Troubleshooting:](#troubleshooting)
+    - [In chat autocompletion](#in-chat-autocompletion)
+  - [Contributing](#contributing)
+  - [License](#license)
+
 
 ## Online demo
 
 An instance of the bot is available on Telegram, but it's hosted on a small machine so it may be highly unavailable if lot of people are using it or just rebooted due to updates (so you'll have to login again).
+
+**WARNING** Anyway I don't advise you to trust any instance of this bot as your token will be available in plain text to any of those bot owner, so they will basically be able to login on Tinder with your account.
 
 [Add the bot to a group](https://telegram.me/tindergroupbot?startgroup=groupwithtinder)
 
 [Start a private conversation with the bot](https://telegram.me/tindergroupbot?start=yes )
 
 ## Screenshots
+
+* Connect your account and start voting
+
+<img src="http://imgur.com/BkHSqdq.png"  data-canonical-src="http://imgur.com/BkHSqdq.png" width="300" height="500" />
+
+* View other pictures
+
+<img src="http://imgur.com/CR0zq42.png"  data-canonical-src="http://imgur.com/CR0zq42.png" width="300" height="500" />
+
+* The bot speaks its mind
+
+<img src="http://imgur.com/AU1wCxt.png"  data-canonical-src="http://imgur.com/AU1wCxt.png" width="300" height="500" />
+
+* And many more features..
 
 ## Usage
 
@@ -78,9 +118,7 @@ Note: Only one person needs to set the Tinder account in order for the bot to wo
 This part is a bit tricky, so you will need to be tech friendly.
 
 ### Automated solutions
-Note:
-
-I did not test those personally so use it at your own risks.
+**Note**: I did not test those personally so use them at your own risks.
 
 #### Chrome plugin
 * https://chrome.google.com/webstore/detail/tinder-auth-token-grabber/pgjknpecbogfcnlfjehdidbeablebepc?hl=en-GB
@@ -93,7 +131,7 @@ I did not test those personally so use it at your own risks.
 
 #### Android
 
-Note: This was tested by not having the Facebook application on the phone but it could also work.
+**Note**: This was tested by not having the Facebook application on the phone but it could also work.
 
 * Download a package sniffer on your phone like [Package Capture](https://play.google.com/store/apps/details?id=app.greyshirts.sslcapture&hl=en)
 * Logout of your Tinder account
@@ -109,7 +147,7 @@ Note: This was tested by not having the Facebook application on the phone but it
 First get your Bot Api Key from the [BotFather](https://core.telegram.org/bots#3-how-do-i-create-a-bot).
 
 ### Docker (from DockerHub)
-Note: Vote data is stored under /votes.
+**Note**: Vote data is stored under /votes.
 
 Simply write your bot api key in the dedicated environment variable and launch the container:
 ```
@@ -256,6 +294,7 @@ If you are in a private conversation with the bot delete the conversation and st
 
 Any contribution is welcomed (feature request, issues, pull request...).
 
+Please remember this is still in a WIP state, so there are still issues and known bugs. Refactoring is also needed.
 
 ## License
 ----

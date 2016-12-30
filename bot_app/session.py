@@ -48,6 +48,7 @@ def do_login(bot, chat_id: str, sender: str, token: str, job_queue: JobQueue):
 def job_refresh_matches(bot, job):
     global data
 
+
     conversation = job.context
     if conversation in data.conversations.values():
         try:

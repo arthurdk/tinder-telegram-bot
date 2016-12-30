@@ -74,7 +74,9 @@ class Conversation:
                     else:
                         retry += 1
                         self.matches_cache = self.matches_cache if self.matches_cache is not None else []
-
+                except BaseException:
+                    traceback.print_exc()
+                    self.matches_cache = self.matches_cache if self.matches_cache is not None else []
         matches = self.matches_cache
         self.matches_cache_lock.release()
         return matches

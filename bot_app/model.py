@@ -1,16 +1,17 @@
 from bot_app.keyboards import *
-import threading
 import bot_app.admin as admin
+from bot_app.session import Session, is_timeout_error
 import time
 import pynder
 import traceback
+import threading
+
 
 class Conversation:
 
-    def __init__(self, group_id, session, owner, token):
+    def __init__(self, group_id, session: Session, owner):
         # The chat id (private ou group id)
         self.group_id = group_id
-        self.session = session
         self.is_voting = False
         self.current_votes = {}
         self.users = []
@@ -24,13 +25,13 @@ class Conversation:
         self.matches_cache_lock = threading.Lock()
         self.matches_cache_time = 0
         self.matches_cache = None
+        self.prev_nb_match = None
+        self.session = session
         self.owner = owner
         self.block_polling_until = 0
         self.block_sending_until = 0
         self.cur_user_insta_private = None
         self.current_mod_candidate = None
-        self.token = token
-        self.prev_nb_match = None
 
     def refresh_users(self):
         self.users = self.session.nearby_users()
@@ -51,31 +52,32 @@ class Conversation:
                 dislikes += 1
         return likes, dislikes
 
-    def get_matches(self):
+    def get_matches(self, force_reload=False):
         """
         Retrieve matches and store them in cache
         :return:
         """
         self.prev_nb_match = None if self.matches_cache is None else len(self.matches_cache)
         self.matches_cache_lock.acquire()
-        if time.time() - self.matches_cache_time > int(self.settings.get_setting("matches_cache_time")) \
-                or self.matches_cache is None:
+        if force_reload or (time.time() - self.matches_cache_time > int(self.settings.get_setting("matches_cache_time")) \
+                or self.matches_cache is None):
             self.matches_cache_time = time.time()
             retry = 0
             success = False
             while retry < 3 and success is False:
                 try:
-                    self.matches_cache = self.session.matches()
+                    self.matches_cache = self.session.get_matches()
                     success = True
                 except pynder.errors.RequestError as e:
                     traceback.print_exc()
-                    if e.args[0] == 401:
+                    if is_timeout_error(e):
                         raise e
                     else:
                         retry += 1
-                        self.matches_cache = self.matches_cache if self.matches_cache is not None else []
                 except BaseException:
                     traceback.print_exc()
+                    retry += 1
+            if retry >= 3 and success is False:
                     self.matches_cache = self.matches_cache if self.matches_cache is not None else []
         matches = self.matches_cache
         self.matches_cache_lock.release()

@@ -82,13 +82,14 @@ def set_location(bot: Bot, update: Update, args):
             r = requests.get("{}{}?format=json&limit=1&bounded=0"
                              .format(location_search_url, ' '.join([str(x) for x in args])))
         try:
+            conversation = data.conversations[chat_id]
             latitude = r.json()[0]["lat"]
             longitude = r.json()[0]["lon"]
-            data.conversations[chat_id].session.update_location(latitude, longitude)
+            conversation.session.update_location(latitude, longitude)
             send_message(bot, chat_id, "location_updated")
-            data.conversations[chat_id].refresh_users()
+            conversation.refresh_users()
             send_location(latitude=latitude, longitude=longitude, bot=bot, chat_id=chat_id)
-        except AttributeError as e:
+        except AttributeError:
             send_help(bot, chat_id, "set_location", "Facebook token needs to be set first")
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
@@ -250,15 +251,16 @@ def start_vote(bot, job):
                     conversation.vote_msg = msg
                     conversation.result_msg = msg
 
-                    if conversation.settings.get_setting(setting="prediction"):
+                    if settings.prediction_backend is not None \
+                            and conversation.settings.get_setting(setting="prediction"):
                         prediction_job = Job(prediction.do_prediction, 0,
                                              repeat=False,
                                              context=(chat_id, conversation.current_user.id, msg.message_id))
                         job_queue.put(prediction_job)
             except pynder.errors.RequestError as e:
                 conversation.set_is_voting(False)
-                if e.args[0] == 401:
-                    session.do_reconnect(bot=bot, chat_id=chat_id, conversation=conversation)
+                if session.is_timeout_error(e):
+                    session.do_reconnect(bot=bot, chat_id=chat_id, session=conversation.session)
                 else:
                     send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
                 if settings.DEBUG_MODE:
@@ -412,7 +414,7 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
             conversation.current_user.dislike()
     except pynder.errors.RequestError as e:
         if e.args[0] == 401:
-            session.do_reconnect(bot=bot, chat_id=chat_id, conversation=conversation)
+            session.do_reconnect(bot=bot, chat_id=chat_id, session=conversation.session)
         else:
             send_error(bot=bot, chat_id=chat_id, name="failed_to_vote")
     # Store vote for future prediction processing
@@ -430,6 +432,7 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
 def message_handler(bot: Bot, update: Update, job_queue):
     """
     Handles incoming text based messages
+    :param job_queue:
     :param bot:
     :param update:
     :return:
@@ -443,7 +446,7 @@ def message_handler(bot: Bot, update: Update, job_queue):
     if text in keyboards.main_keyboard:
         send_matches_menu(bot, chat_id)
     # Check if someone is trying to login
-    elif sender in data.change_account_queries:
+    elif sender in data.change_account_queries and chat_id == sender:
         session.do_login(bot=bot, chat_id=chat_id, sender=sender,
                          token=update.message.text, job_queue=job_queue)
 

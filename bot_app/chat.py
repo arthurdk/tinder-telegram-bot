@@ -19,7 +19,6 @@ def send_message(bot: Bot, update, args):
     conversation = data.conversations[chat_id]
     owner = conversation.owner
     settings = conversation.settings
-    session = conversation.session
 
     chat_mode = settings.get_setting("chat_mode")
     if chat_mode == "off" or (chat_mode == "owner" and sender != owner):
@@ -46,7 +45,7 @@ def send_message(bot: Bot, update, args):
         send_help(bot, chat_id, "send_message", "First argument must be an integer range or 'last'.")
         return
 
-    matches = session.matches()
+    matches = conversation.get_matches()
     message = " ".join(args[1:])
 
     if match_ids is None:
@@ -56,9 +55,8 @@ def send_message(bot: Bot, update, args):
         destination = get_match(bot, update, match_id, matches)
         destination.message(message)
 
-    matches = session.matches()
     messages_shown = 0
-
+    matches = conversation.get_matches(force_reload=True)
     for match_id in match_ids:
         destination = get_match(bot, update, match_id, matches)
 
@@ -80,7 +78,7 @@ def get_match(bot: Bot, update, id, matches=None):
     chat_id = update.message.chat_id
 
     if matches is None:
-        matches = data.conversations[chat_id].session.matches()
+        matches = data.conversations[chat_id].get_matches()
 
     if id < 0 or id >= len(matches):
         send_error(bot, chat_id, "unknown_match_id")
@@ -179,7 +177,8 @@ def poll_messages(bot: Bot, update, args, only_unanswered=False):
             try:
                 match_ids = parse_range(bot, chat_id, args[0], max_range_size)
             except ValueError:
-                send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "First argument must be an integer range or 'last'")
+                send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages",
+                          "First argument must be an integer range or 'last'")
                 return
 
     if len(args) < 2:
@@ -188,18 +187,21 @@ def poll_messages(bot: Bot, update, args, only_unanswered=False):
         try:
             n = int(args[1])
         except ValueError:
-            send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "Second argument must be an integer")
+            send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages",
+                      "Second argument must be an integer")
             return
 
     if n < 1:
-        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "<n> must be greater than zero!")
+        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages",
+                  "<n> must be greater than zero!")
         return
 
     if n > 100:
-        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages", "<n> must be smaller than a hundred.")
+        send_help(bot, chat_id, "poll_unanswered" if only_unanswered else "poll_messages",
+                  "<n> must be smaller than a hundred.")
     bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
     matches = conversation.get_matches()
-    my_id = conversation.session.profile.id
+    my_id = conversation.session.get_profile_id()
     messages_shown = 0
 
     if match_ids is None:

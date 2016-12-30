@@ -13,12 +13,16 @@ if [ -z "$LOCATION_BACKEND" ]; then
     LOCATION_BACKEND=http://nominatim.openstreetmap.org/search/
 fi
 
+if [ -z "$DEBUG" ]; then
+    DEBUG=False
+fi
+
 
 cat > $ROOT_FOLDER/bot_app/settings.py << EOL
 from bot_app.prediction import *
 KEY = "$BOT_KEY"
 DB_NAME = 'tinderbot.sqlite3'
-DEBUG_MODE = True
+DEBUG_MODE = $DEBUG
 
 settings_defaults = {
     "chat_mode": "all",  # Modes are off, owner and all

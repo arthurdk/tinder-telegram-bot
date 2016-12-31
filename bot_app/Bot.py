@@ -417,6 +417,8 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
             session.do_reconnect(bot=bot, chat_id=chat_id, session=conversation.session)
         else:
             send_error(bot=bot, chat_id=chat_id, name="failed_to_vote")
+    except BaseException:
+        send_error(bot=bot, chat_id=chat_id, name="failed_to_vote")
     # Store vote for future prediction processing
     if conversation.settings.get_setting("store_votes"):
         data_retrieval.do_store_vote(user_id=conversation.current_user.id,

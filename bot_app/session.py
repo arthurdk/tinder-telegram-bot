@@ -108,17 +108,20 @@ def job_refresh_matches(bot: Bot, job):
             if conversation.prev_nb_match is not None and len(matches) > conversation.prev_nb_match:
                 messages.send_message(bot=bot, chat_id=conversation.group_id, name="new_match")
         except pynder.errors.RequestError:
-            do_reconnect(bot=bot, chat_id=conversation.group_id, session=session)
+            do_reconnect(bot=bot, chat_id=conversation.group_id, conversation=conversation)
     else:
         job.schedule_removal()
 
 
-def do_reconnect(bot: Bot, chat_id: str, session: Session):
+def do_reconnect(bot: Bot, chat_id: str, conversation):
     # TODO insert lock ;)
     messages.send_error(bot=bot, chat_id=chat_id, name="tinder_timeout")
     global data
+    session = conversation.session
     if session.do_connect():
         message = "Switching to %s's account." % session.get_profile_name()
         messages.send_custom_message(bot=bot, message=message, chat_id=chat_id)
+        # Refresh list of users so they have the new session
+        conversation.refresh_users()
     else:
         messages.send_error(bot=bot, chat_id=chat_id, name="auth_failed")

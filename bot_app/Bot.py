@@ -260,7 +260,7 @@ def start_vote(bot, job):
             except pynder.errors.RequestError as e:
                 conversation.set_is_voting(False)
                 if session.is_timeout_error(e):
-                    session.do_reconnect(bot=bot, chat_id=chat_id, session=conversation.session)
+                    session.do_reconnect(bot=bot, chat_id=chat_id, conversation=conversation)
                 else:
                     send_error(bot=bot, chat_id=chat_id, name="new_vote_failed")
                 if settings.DEBUG_MODE:
@@ -414,7 +414,8 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
             conversation.current_user.dislike()
     except pynder.errors.RequestError as e:
         if e.args[0] == 401:
-            session.do_reconnect(bot=bot, chat_id=chat_id, session=conversation.session)
+            session.do_reconnect(bot=bot, chat_id=chat_id, conversation=conversation)
+            send_error(bot=bot, chat_id=chat_id, name="failed_to_vote")
         else:
             send_error(bot=bot, chat_id=chat_id, name="failed_to_vote")
     except BaseException:

@@ -335,6 +335,7 @@ def send_photo(bot, chat_id, photo, caption, reply_markup):
         try:
             msg = bot.sendPhoto(chat_id, photo=photo, caption=caption,
                                 reply_markup=reply_markup)
-        except BaseException:
+            return msg
+        except BaseException as e:
             pass
     return msg

@@ -33,6 +33,8 @@ class Conversation:
         self.cur_user_insta_private = None
         self.current_mod_candidate = None
         self.current_user = None
+        # Dict use to map vote message to tinder User -> handler of inline button
+        self.map_msg_user = {}
 
     def refresh_users(self):
         self.users = self.session.nearby_users()
@@ -62,6 +64,9 @@ class Conversation:
             user._session = self.session.__session
         if self.current_user is not None:
             self.current_user._session = self.session.__session
+
+    def get_single_user(self, user_id):
+        return self.session.get_single_user(user_id)
 
     def get_matches(self, force_reload=False):
         """

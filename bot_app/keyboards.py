@@ -1,25 +1,55 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 from bot_app.messages import *
 import bot_app.data_retrieval as data_retrieval
+import json
+
 
 # Homemade enum -> will change
 class InlineKeyboard:
-    SUPERLIKE = "SUPERLIKE"
+    # SUPERLIKE = BaseInlineAction("SUPER_LIKE")
     LIKE = "LIKE"
     DISLIKE = "DISLIKE"
-    MORE = "MORE"
-    BACK = "BACK"
-    NEXT = "NEXT"
-    PREVIOUS = "PREVIOUS"
+    MORE_PICS = "MORE_PICS"
+    BIO = "BIO"
+    # BACK = BaseInlineAction("BACK")
+    # NEXT = BaseInlineAction("NEXT")
+    # PREVIOUS = BaseInlineAction("PREVIOUS")
     INSTAGRAM = "INSTAGRAM"
 
 
-# BIO = "BIO"
+class BaseInlineAction:
+    def __init__(self, action):
+        self.action = action
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=2)
+
+
+class UserTargetedInlineAction(BaseInlineAction):
+    def __init__(self, action, user_id):
+        """
+        :param action:
+        :param user_id: Pynder uid
+        """
+        super().__init__(action)
+        self.user_id = user_id
+
+    def set_user_id(self, user_id):
+        self.user_id = user_id
+        return self
+
 
 main_keyboard = ["Matches"]
 
 
 def get_vote_keyboard(conversation, bot_name):
+    """
+    Return the vote keyboard
+    :param conversation:
+    :param bot_name:
+    :param user_id: pynder uid
+    :return:
+    """
     global data
     likes, dislikes = conversation.get_stats()
     like_label = "❤️"
@@ -29,15 +59,18 @@ def get_vote_keyboard(conversation, bot_name):
         like_label += " (%d)" % likes
         dislike_label += " (%d)" % dislikes
 
-    keyboard = [[InlineKeyboardButton(like_label, callback_data=InlineKeyboard.LIKE),
-                 InlineKeyboardButton("More pictures",
-                                      callback_data=InlineKeyboard.MORE,
-                                      ),
-                 InlineKeyboardButton(dislike_label, callback_data=InlineKeyboard.DISLIKE)],
-                ]
-    second_row = []
-    second_row.append(InlineKeyboardButton("Inline pictures",
-                                           switch_inline_query_current_chat="pictures " + str(conversation.group_id)))
+    keyboard = \
+        [
+            [
+                InlineKeyboardButton(like_label, callback_data=InlineKeyboard.LIKE),
+                InlineKeyboardButton("More pictures", callback_data=InlineKeyboard.MORE_PICS),
+                InlineKeyboardButton(dislike_label, callback_data=InlineKeyboard.DISLIKE)
+            ],
+        ]
+    second_row = [
+        InlineKeyboardButton("Inline pictures",
+                             switch_inline_query_current_chat="pictures " + str(conversation.group_id))
+    ]
     user = conversation.current_user
     # Instagram button
     instagram_user = user.instagram_username
@@ -71,6 +104,9 @@ def switch_group_keyboard():
     keyboard = [[InlineKeyboardButton(messages["back_group"], switch_inline_query="")]]
     return InlineKeyboardMarkup(keyboard)
 
+
+"""
+One day this code will emerge from the dead.
 
 def get_main_keyboard():
     keyboard = [[KeyboardButton("/set_account"),
@@ -113,4 +149,15 @@ def get_conversation_menu(conversation):
             cur_row = []
         cur_row.append(InlineKeyboardButton(match.user.name, callback_data=InlineKeyboard.DISLIKE))
     keyboard.append(cur_row)
+    return InlineKeyboardMarkup(keyboard)
+"""
+
+
+def get_vote_finished_keyboard():
+    keyboard = \
+        [
+            [
+                InlineKeyboardButton("More pictures", callback_data=InlineKeyboard.MORE_PICS)
+            ],
+        ]
     return InlineKeyboardMarkup(keyboard)

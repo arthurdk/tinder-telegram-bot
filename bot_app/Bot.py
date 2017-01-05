@@ -125,6 +125,9 @@ def set_timeout(bot: Bot, update: Update, args):
             except AttributeError:
                 message = "An error happened."
                 send_custom_message(bot, chat_id, message=message)
+            except BaseException:
+                message = "An error happened."
+                send_custom_message(bot, chat_id, message=message)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
@@ -244,7 +247,7 @@ def start_vote(bot, job):
                     reply_markup = keyboards.get_vote_keyboard(conversation=conversation, bot_name=bot.username)
                     msg = send_photo(bot=bot, chat_id=chat_id, photo=photos[0], caption=caption,
                                      reply_markup=reply_markup)
-
+                    conversation.map_msg_user[msg.message_id] = conversation.current_user.id
                     # Why? Before this commit a question was sent to the group along with the photo.
                     # TODO => refactor properly
                     conversation.vote_msg = msg
@@ -402,7 +405,8 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
         # todo wrap this up
         bot.editMessageCaption(chat_id=msg.chat_id,
                                message_id=msg.message_id,
-                               caption=caption + "\n%s" % message)
+                               caption=caption + "\n%s" % message,
+                               reply_markup=keyboards.get_vote_finished_keyboard())
     except BaseException:
         traceback.print_exc()
     conversation.set_is_voting(False)
@@ -448,10 +452,12 @@ def message_handler(bot: Bot, update: Update, job_queue):
         sender = update.message.from_user.id
         text = update.message.text
         # Check action from main menu
+        """
         if text in keyboards.main_keyboard:
             send_matches_menu(bot, chat_id)
+        """
         # Check if someone is trying to login
-        elif sender in data.change_account_queries and chat_id == sender:
+        if sender in data.change_account_queries and chat_id == sender:
             session.do_login(bot=bot, chat_id=chat_id, sender=sender,
                              token=update.message.text, job_queue=job_queue)
 
@@ -524,20 +530,15 @@ def send_about(bot: Bot, update: Update):
     chat_id = update.message.chat_id
     send_custom_message(bot=bot, chat_id=chat_id, message=msg)
 
-
+"""
 def send_matches_menu(bot: Bot, chat_id: str):
-    """
-    Not implemented yet.
-    :param bot:
-    :param chat_id:
-    :return:
-    """
     global data
     if chat_id in data.conversations:
         conversation = data.conversations[chat_id]
         bot.sendMessage(chat_id=chat_id, text="Matches menu", reply_markup=keyboards.get_matches_menu(conversation))
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
+"""
 
 
 def custom_command_handler(bot: Bot, update: Update):

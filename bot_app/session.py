@@ -1,15 +1,11 @@
-import pynder
 from telegram import ChatAction, Bot
 from telegram.ext import JobQueue, Job
 import bot_app.keyboards as keyboards
 import bot_app.data as data
 import bot_app.messages as messages
 from telegram.ext.dispatcher import run_async
-import time
 import pynder
-import traceback
-import threading
-
+import pynder.models as pynder_models
 
 class Session:
     """
@@ -47,6 +43,10 @@ class Session:
 
     def update_location(self, latitude, longitude):
         self.__session.update_location(latitude=latitude, longitude=longitude)
+
+    def get_single_user(self, user_id):
+        data = self.__session._api.user_info(user_id=user_id)
+        return pynder_models.user.User(data['results'], self.__session)
 
 
 def is_timeout_error(e):

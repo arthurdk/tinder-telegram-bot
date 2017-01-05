@@ -1,5 +1,5 @@
 from telegram.ext.dispatcher import run_async
-from bot_app import messages, keyboards
+from bot_app import messages, keyboards, session
 from telegram import TelegramError, Bot
 import bot_app.data as data
 from telegram import InlineQueryResultPhoto, InlineQueryResultArticle, InputTextMessageContent
@@ -51,9 +51,15 @@ def do_press_inline_button(bot, update, job_queue):
         sender = query.from_user.id
         new_vote = False
         conversation = data.conversations[chat_id]
-        if query.data == keyboards.InlineKeyboard.MORE:
-            send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
-                             incoming_message=update.callback_query.message)
+        if query.data == keyboards.InlineKeyboard.MORE_PICS:
+            msg_id = query.message.message_id
+            if msg_id in conversation.map_msg_user:
+                pynder_user_id = conversation.map_msg_user[msg_id]
+                user = conversation.get_single_user(pynder_user_id)
+                send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
+                                 incoming_message=update.callback_query.message, user=user)
+            else:
+                messages.send_custom_message(bot=bot, chat_id=chat_id, message="Unknown user.")
         elif query.data == keyboards.InlineKeyboard.INSTAGRAM:
             send_instagram_urls(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
                                 incoming_message=update.callback_query.message)
@@ -161,7 +167,7 @@ def inline_preview(bot: Bot, update):
 
 
 @run_async
-def send_more_photos(private_chat_id: str, group_chat_id: str, bot, incoming_message):
+def send_more_photos(private_chat_id: str, group_chat_id: str, bot, incoming_message, user):
     """
     Function used for sending all user pictures to private chat directly
     :param incoming_message:
@@ -172,23 +178,19 @@ def send_more_photos(private_chat_id: str, group_chat_id: str, bot, incoming_mes
     """
     global data
     if group_chat_id in data.conversations:
-        if data.conversations[group_chat_id].is_voting:
 
-            photos = data.conversations[group_chat_id].current_user.get_photos(width='320')
-            for idx, photo in enumerate(photos):
-                caption = " %s (%d/%d) " % (data.conversations[group_chat_id].current_user.name, idx + 1, len(photos))
+        photos = user.get_photos(width='320')
+        for idx, photo in enumerate(photos):
+            caption = " %s (%d/%d) " % (user.name, idx + 1, len(photos))
 
-                is_msg_sent = messages.send_private_photo(bot=bot, caption=caption, url=photo, user_id=private_chat_id)
+            is_msg_sent = messages.send_private_photo(bot=bot, caption=caption, url=photo, user_id=private_chat_id)
 
-                if not is_msg_sent:
-                    messages.notify_start_private_chat(bot=bot,
-                                                       chat_id=group_chat_id,
-                                                       incoming_message=incoming_message)
-                    break
+            if not is_msg_sent:
+                messages.notify_start_private_chat(bot=bot,
+                                                   chat_id=group_chat_id,
+                                                   incoming_message=incoming_message)
+                break
 
-        else:
-            message = "There is not vote going on right now."
-            bot.sendMessage(private_chat_id, text=message)
     else:
         messages.send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
 

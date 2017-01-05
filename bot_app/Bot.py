@@ -242,9 +242,9 @@ def start_vote(bot, job):
                     caption = get_caption_match(conversation.current_user, 0, max_vote, bio=True)
                     # Prepare inline keyboard for voting
                     reply_markup = keyboards.get_vote_keyboard(conversation=conversation, bot_name=bot.username)
-                    # TODO wrap this up
-                    msg = bot.sendPhoto(chat_id, photo=photos[0], caption=caption,
-                                        reply_markup=reply_markup)
+                    msg = send_photo(bot=bot, chat_id=chat_id, photo=photos[0], caption=caption,
+                                     reply_markup=reply_markup)
+
                     # Why? Before this commit a question was sent to the group along with the photo.
                     # TODO => refactor properly
                     conversation.vote_msg = msg
@@ -415,7 +415,7 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
             # todo wrap this up
             conversation.current_user.dislike()
     except pynder.errors.RequestError as e:
-        if e.args[0] == 401:
+        if session.is_timeout_error(e):
             session.do_reconnect(bot=bot, chat_id=chat_id, conversation=conversation)
             send_error(bot=bot, chat_id=chat_id, name="failed_to_vote")
         else:
@@ -520,7 +520,7 @@ def send_about(bot: Bot, update: Update):
     repo = git.Repo(search_parent_directories=True)
     sha = repo.head.object.hexsha
     msg = messages["about"] + "\nLast commit [%s](https://github.com/arthurdk/tinder-telegram-bot/commit/%s)" % (
-    sha, sha)
+        sha, sha)
     chat_id = update.message.chat_id
     send_custom_message(bot=bot, chat_id=chat_id, message=msg)
 

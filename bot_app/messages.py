@@ -1,6 +1,7 @@
 import bot_app.settings as settings
 from telegram import ParseMode
 from telegram.error import TelegramError, Unauthorized
+import telegram as telegram
 
 # Help messages for all the bot commands. Use the internal function names as key!
 help_messages = {}
@@ -158,6 +159,10 @@ def __actual_send_message(bot, chat_id, text,
     :param text:
     :return:
     """
+    # Truncate text if it's too long...
+    if len(text) >= telegram.constants.MAX_MESSAGE_LENGTH:
+        token = "[...]"
+        text = text[:-len(token)] + token
     try:
         bot.sendMessage(chat_id, text=text, parse_mode=ParseMode.MARKDOWN,
                         disable_web_page_preview=disable_web_page_preview,
@@ -200,6 +205,11 @@ def send_private_photo(bot, user_id, url, caption):
     :param url:
     :return:
     """
+
+    # Truncate caption if it's too long...
+    if len(caption) >= telegram.constants.MAX_CAPTION_LENGTH:
+        token = "[...]"
+        caption = caption[:-len(token)] + token
     try:
         bot.sendPhoto(user_id, photo=url, caption=caption)
         return True
@@ -311,3 +321,20 @@ def send_location(latitude, longitude, bot, chat_id):
 
 def send_chat_action(bot, chat_id, action):
     bot.sendChatAction(chat_id=chat_id, action=action)
+
+
+def send_photo(bot, chat_id, photo, caption, reply_markup):
+    retry = 0
+    msg = None
+    # Truncate caption if it's too long...
+    if len(caption) >= telegram.constants.MAX_CAPTION_LENGTH:
+        token = "[...]"
+        caption = caption[:-len(token)] + token
+    while retry < 3:
+        retry += 1
+        try:
+            msg = bot.sendPhoto(chat_id, photo=photo, caption=caption,
+                                reply_markup=reply_markup)
+        except BaseException:
+            pass
+    return msg

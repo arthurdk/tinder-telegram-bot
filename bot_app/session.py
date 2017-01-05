@@ -121,7 +121,6 @@ def do_reconnect(bot: Bot, chat_id: str, conversation):
     if session.do_connect():
         message = "Switching to %s's account." % session.get_profile_name()
         messages.send_custom_message(bot=bot, message=message, chat_id=chat_id)
-        # Refresh list of users so they have the new session
-        conversation.refresh_users()
+        conversation.propagate_session()
     else:
         messages.send_error(bot=bot, chat_id=chat_id, name="auth_failed")

@@ -201,7 +201,7 @@ git clone https://github.com/arthurdk/tinder-telegram-bot.git \
 Then, build the image:
 
 ```
-docker build -f docker/Dockerfile \
+docker build -f Dockerfile \
  -t <your-repo-name>/tinder-telegram-bot:latest .
 ```
 

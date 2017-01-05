@@ -32,6 +32,7 @@ class Conversation:
         self.block_sending_until = 0
         self.cur_user_insta_private = None
         self.current_mod_candidate = None
+        self.current_user = None
 
     def refresh_users(self):
         self.users = self.session.nearby_users()
@@ -51,6 +52,16 @@ class Conversation:
             elif value == InlineKeyboard.DISLIKE:
                 dislikes += 1
         return likes, dislikes
+
+    def propagate_session(self):
+        """
+        Propagate new session to already create pynder object
+        :return:
+        """
+        for user in self.users:
+            user._session = self.session.__session
+        if self.current_user is not None:
+            self.current_user._session = self.session.__session
 
     def get_matches(self, force_reload=False):
         """

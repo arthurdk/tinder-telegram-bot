@@ -1,6 +1,6 @@
 import bot_app.settings as settings
 from telegram import ParseMode
-from telegram import TelegramError
+from telegram.error import TelegramError, Unauthorized
 
 # Help messages for all the bot commands. Use the internal function names as key!
 help_messages = {}
@@ -12,9 +12,12 @@ help_messages["poll_messages"] = "Usage of `/poll_msgs`:\n" \
                                  "Polls the last n messages from the match. You can get the match-id by executing /matches. Supports id ranges. Second argument can be omitted and defaults to 5. Without arguments or with first argument = 'last', the max last matches are polled."
 help_messages["poll_unanswered"] = "Usage of `/poll_unanswered`:\n" \
                                    "`/poll_unanswered` <match-id> <n>\nPolls the last n messages from the match. Shows them only if the last message is not from you. You should use it with an id range. Without arguments or with first argument = 'last', the max last matches are polled."
-help_messages["set_location"] = "Usage of /location:\n/set_location <place name> or <latitude> <longitude\nYou can also just use telegram to send a location to the group."
-help_messages["set_setting"] = "Usage of `/set_setting`:\n`/set_setting` <setting> <value>\nCommand may only be used by account owner."
-help_messages["make_me_a_mod"] = "Usage of `/set_mod`:\n`/set_mod` <user> <True|False>\nChange moderator status of a user."
+help_messages[
+    "set_location"] = "Usage of /location:\n/set_location <place name> or <latitude> <longitude\nYou can also just use telegram to send a location to the group."
+help_messages[
+    "set_setting"] = "Usage of `/set_setting`:\n`/set_setting` <setting> <value>\nCommand may only be used by account owner."
+help_messages[
+    "make_me_a_mod"] = "Usage of `/set_mod`:\n`/set_mod` <user> <True|False>\nChange moderator status of a user."
 
 # If you modify this sure the markdown is compatible with telegram !
 help_messages["help"] = "*Usage of the bot:*\n" \
@@ -56,8 +59,10 @@ messages["welcome"] = 'Hey ! \nFirst things first, you will need to set your aut
                       'If you need help, type /help!'
 messages["location_updated"] = "Location updated. (this may not work, due to Tinder API)"
 messages["setting_updated"] = "Setting updated."
-messages["about"] = "I'm open source, you can learn more about me on Github: https://github.com/arthurdk/tinder-telegram-bot"
-messages["start_chat"] = "Please start a private conversation with me first. Follow the link: %s and then press 'Start' and then come back to this chat."
+messages[
+    "about"] = "I'm open source, you can learn more about me on Github: https://github.com/arthurdk/tinder-telegram-bot"
+messages[
+    "start_chat"] = "Please start a private conversation with me first. Follow the link: %s and then press 'Start' and then come back to this chat."
 messages["send_token"] = "Please send me your authentication token in *our private conversation* %s "
 messages["vote_question"] = "So what do you think of %s? (%d/%d votes)"
 messages["unblocking_successful"] = "Sending and polling were unblocked."
@@ -65,11 +70,12 @@ messages["switch_private"] = "🔒 Switch to private chat"
 messages["back_group"] = "Switch to group"
 messages["new_match"] = "You have a new match."
 messages["account_unlinked"] = "Account successfully unlinked."
-messages["ask_for_token"] = "Please, send me your facebook *authentication token*.\n*Note*: This token " \
+messages["ask_for_token"] = "Please, send me your Tinder *authentication token*.\n*Note*: This token " \
                             "is only for accessing your Tinder account, your Facebook account is *safe*.\n" \
                             "Don't know how to retrieve this token?\n" \
                             "➡️ [Retrieving the authentication token]" \
-                            "(https://github.com/arthurdk/tinder-telegram-bot#retrieving-the-authentication-token)"
+                            "(https://github.com/arthurdk/tinder-telegram-bot#retrieving-the-authentication-token)\n" \
+                            "*WARNING: * By sharing * YOUR * token, you will give access this bot with your Tinder account (and potentially to the bot owner too if he wants to)."
 
 # Error messages
 error_messages = {}
@@ -77,19 +83,22 @@ error_messages["account_not_setup"] = "Chat not registered yet, please add token
 error_messages["unknown_match_id"] = "Unknown match-id."
 error_messages["command_not_allowed"] = "This command must not be executed by the account owner."
 error_messages["range_too_large"] = "The given range is too large."
-error_messages["unknown_command"] = "I'm sorry Dave I'm afraid I can't do that."
+error_messages[
+    "unknown_command"] = "I'm sorry Dave I'm afraid I can't do that. Type /help if you does not want what to do."
 error_messages["tinder_timeout"] = "Tinder account timed out, I'll try reconnecting the chat to Tinder right away."
 error_messages["auth_failed"] = "Authentication failed! Please try again."
 error_messages["new_vote_failed"] = "Failed to start new vote, please try again."
 error_messages["no_more_users"] = "There are no other users available."
 error_messages["failed_to_vote"] = "I failed to like/dislike this user on Tinder."
 error_messages["no_location"] = "Location expired. Please use /location and start voting again."
-### Functions for sending messages to the user ###
+error_messages["error"] = "Something went wrong."
 
+
+# Functions for sending messages to the user
 
 def debug(bot, chat_id, message):
     if settings.DEBUG_MODE:
-        bot.sendMessage(chat_id, text=message)
+        __actual_send_message(bot=bot, chat_id=chat_id, text=message)
 
 
 def get_question_match(conversation):
@@ -122,7 +131,7 @@ def send_help(bot, chat_id, command, error=""):
 
     message += help_messages[command]
     try:
-        bot.sendMessage(chat_id, text=message, parse_mode=ParseMode.MARKDOWN)
+        __actual_send_message(chat_id=chat_id, bot=bot, text=message, parse_mode=ParseMode.MARKDOWN)
     except TelegramError as e:
         raise e
 
@@ -135,7 +144,13 @@ def send_message(bot, chat_id, name):
     __actual_send_message(bot=bot, chat_id=chat_id, text=msg)
 
 
-def __actual_send_message(bot, chat_id, text):
+def __actual_send_message(bot, chat_id, text,
+                          parse_mode=None,
+                          disable_web_page_preview=None,
+                          disable_notification=False,
+                          reply_to_message_id=None,
+                          reply_markup=None,
+                          timeout=None):
     """
     Try sending markdown and revert to normal text if broken
     :param bot:
@@ -144,9 +159,19 @@ def __actual_send_message(bot, chat_id, text):
     :return:
     """
     try:
-        bot.sendMessage(chat_id, text=text, parse_mode=ParseMode.MARKDOWN)
-    except TelegramError as e:
-        bot.sendMessage(chat_id, text=text)
+        bot.sendMessage(chat_id, text=text, parse_mode=ParseMode.MARKDOWN,
+                        disable_web_page_preview=disable_web_page_preview,
+                        disable_notification=disable_notification,
+                        reply_to_message_id=reply_to_message_id,
+                        reply_markup=reply_markup,
+                        timeout=timeout)
+    except TelegramError:
+        bot.sendMessage(chat_id, text=text,
+                        disable_web_page_preview=disable_web_page_preview,
+                        disable_notification=disable_notification,
+                        reply_to_message_id=reply_to_message_id,
+                        reply_markup=reply_markup,
+                        timeout=timeout)
 
 
 def send_private_message(bot, user_id, text):
@@ -178,9 +203,11 @@ def send_private_photo(bot, user_id, url, caption):
     try:
         bot.sendPhoto(user_id, photo=url, caption=caption)
         return True
+    except Unauthorized:
+        return False
     except TelegramError as e:
-        if e.message == "Unauthorized":
-            return False
+        # Todo try to send failed to send photo...
+        pass
 
 
 def send_private_link(bot, user_id, url):
@@ -194,23 +221,24 @@ def send_private_link(bot, user_id, url):
     :return:
     """
     try:
-        bot.sendMessage(user_id, text=url + " ")
+        __actual_send_message(bot=bot, chat_id=user_id, text=url + " ")
         return True
+    except Unauthorized:
+        return False
     except TelegramError as e:
-        if e.message == "Unauthorized":
-            return False
+        # Todo try to send failed to message photo...
+        pass
 
 
 def notify_start_private_chat(bot, chat_id, incoming_message=None):
     if incoming_message is not None and incoming_message.from_user.username != bot.username:
         import bot_app.keyboards as keyboards
         reply_markup = keyboards.switch_private_chat_keyboard(bot.username)
-        bot.sendMessage(chat_id,
-                        text=messages["start_chat"] % bot.name,
-                        reply_to_message_id=incoming_message.message_id,
-                        reply_markup=reply_markup)
+        __actual_send_message(bot=bot, chat_id=chat_id, text=messages["start_chat"] % bot.name,
+                              reply_to_message_id=incoming_message.message_id,
+                              reply_markup=reply_markup)
     else:
-        bot.sendMessage(chat_id, text=messages["start_chat"] % bot.name)
+        __actual_send_message(bot=bot, chat_id=chat_id, text=messages["start_chat"] % bot.name)
 
 
 def notify_send_token(bot, chat_id, reply_to_message_id, is_group, group_name, reply_markup=[[]]):
@@ -227,17 +255,11 @@ def notify_send_token(bot, chat_id, reply_to_message_id, is_group, group_name, r
     msg = messages["send_token"] % bot.name
     if is_group:
         msg += " for the group %s" % group_name
-    try:
-        bot.sendMessage(chat_id,
-                        text=msg,
-                        reply_to_message_id=reply_to_message_id,
-                        reply_markup=reply_markup,
-                        parse_mode=ParseMode.MARKDOWN)
-    except TelegramError as e:
-        bot.sendMessage(chat_id,
-                        text=msg,
-                        reply_to_message_id=reply_to_message_id,
-                        reply_markup=reply_markup)
+
+        __actual_send_message(bot=bot, chat_id=chat_id, text=msg,
+                              reply_to_message_id=reply_to_message_id,
+                              reply_markup=reply_markup,
+                              parse_mode=ParseMode.MARKDOWN)
 
 
 def send_error(bot, chat_id, name):
@@ -251,17 +273,41 @@ def unknown(bot, update):
     send_message(bot=bot, chat_id=update.message.chat_id, name=error_messages["unknown_command"])
 
 
-def send_custom_message(bot, chat_id, message):
+def send_custom_message(bot, chat_id, message, parse_mode=None,
+                        disable_web_page_preview=None,
+                        disable_notification=False,
+                        reply_to_message_id=None,
+                        reply_markup=None,
+                        timeout=None):
     """
     Send a custom message (not predefined)
+    :param timeout:
+    :param reply_markup:
+    :param reply_to_message_id:
+    :param parse_mode:
+    :param disable_notification:
+    :param disable_web_page_preview:
     :param bot:
     :param chat_id:
     :param message:
     :return:
     """
-    __actual_send_message(bot, chat_id=chat_id, text=message)
+    __actual_send_message(bot, chat_id=chat_id, text=message, parse_mode=parse_mode,
+                          disable_web_page_preview=disable_web_page_preview,
+                          disable_notification=disable_notification,
+                          reply_to_message_id=reply_to_message_id,
+                          reply_markup=reply_markup,
+                          timeout=timeout)
 
 
 # Handling bot commands
 def send_help_message(bot, update):
     send_help(bot, update.message.chat_id, "help")
+
+
+def send_location(latitude, longitude, bot, chat_id):
+    bot.sendLocation(chat_id, latitude=latitude, longitude=longitude)
+
+
+def send_chat_action(bot, chat_id, action):
+    bot.sendChatAction(chat_id=chat_id, action=action)

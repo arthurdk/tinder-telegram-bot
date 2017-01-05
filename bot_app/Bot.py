@@ -3,6 +3,8 @@
 
 import requests
 from telegram.ext import InlineQueryHandler
+from telegram.error import (TelegramError, Unauthorized, BadRequest,
+                            TimedOut, ChatMigrated, NetworkError)
 from telegram import ChatAction, error, Bot, Update
 from telegram.ext import Updater, CommandHandler, Job, CallbackQueryHandler, Filters, MessageHandler
 from telegram.ext.dispatcher import run_async
@@ -48,10 +50,6 @@ def start(bot: Bot, update: Update):
     send_message(bot, chat_id, "welcome")
 
 
-def send_location(latitude, longitude, bot, chat_id):
-    bot.sendLocation(chat_id, latitude=latitude, longitude=longitude)
-
-
 def update_location(bot: Bot, update: Update):
     """
     Handle location being sent in the conversation
@@ -78,7 +76,7 @@ def set_location(bot: Bot, update: Update, args):
             send_help(bot, chat_id, "set_location", "Please indicate GPS coordinates or the name of a place")
             return
         else:
-            bot.sendChatAction(chat_id=chat_id, action=ChatAction.FIND_LOCATION)
+            send_chat_action(bot=bot, chat_id=chat_id, action=ChatAction.FIND_LOCATION)
             r = requests.get("{}{}?format=json&limit=1&bounded=0"
                              .format(location_search_url, ' '.join([str(x) for x in args])))
         try:
@@ -147,7 +145,7 @@ def set_auto(bot: Bot, update: Update):
             message = "Automatic mode enabled."
         else:
             message = "Automatic mode disabled."
-        bot.sendMessage(chat_id, text=message)
+        send_custom_message(bot=bot, chat_id=chat_id, message=message)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
@@ -182,11 +180,11 @@ def send_matches(bot: Bot, update: Update):
                         break
                     id += 1
                 except error.BadRequest:
-                    bot.sendMessage(sender_id, text="One match could not be loaded: %s" % photo)
+                    send_custom_message(bot=bot, chat_id=sender_id, message="One match could not be loaded: %s" % photo)
                 time.sleep(0.1)
         except AttributeError as e:
             message = "An error happened."
-            bot.sendMessage(sender_id, text=message)
+            send_custom_message(bot=bot, chat_id=sender_id, message=message)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
@@ -244,6 +242,7 @@ def start_vote(bot, job):
                     caption = get_caption_match(conversation.current_user, 0, max_vote, bio=True)
                     # Prepare inline keyboard for voting
                     reply_markup = keyboards.get_vote_keyboard(conversation=conversation, bot_name=bot.username)
+                    # TODO wrap this up
                     msg = bot.sendPhoto(chat_id, photo=photos[0], caption=caption,
                                         reply_markup=reply_markup)
                     # Why? Before this commit a question was sent to the group along with the photo.
@@ -271,8 +270,8 @@ def start_vote(bot, job):
                 if settings.DEBUG_MODE:
                     traceback.print_exc()
         else:
-            bot.sendMessage(chat_id, text="Current vote is not finished yet.",
-                            reply_to_message_id=conversation.vote_msg.message_id)
+            send_custom_message(bot=bot, chat_id=chat_id, message="Current vote is not finished yet.",
+                                reply_to_message_id=conversation.vote_msg.message_id)
     else:
         send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
 
@@ -341,7 +340,7 @@ def dynamic_timeout_formular(min_votes, votes_fraction):
     result = 1
     result += (1 - votes_fraction) * math.log2(min_votes)  # Linear part makes timeout rise
     result += min_votes * (
-    min_votes ** ((1 - votes_fraction) ** 3) - 1)  # Exponential part to punish really low vote counts
+        min_votes ** ((1 - votes_fraction) ** 3) - 1)  # Exponential part to punish really low vote counts
     result += (40 - 40 ** (votes_fraction)) / min_votes ** 2  # Punish missing votes harder if min_votes is low
     return result
 
@@ -400,6 +399,7 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
     max_vote = conversation.settings.get_setting("min_votes_before_timeout")
     caption = get_caption_match(conversation.current_user, current_vote, max_vote, bio=False)
     try:
+        # todo wrap this up
         bot.editMessageCaption(chat_id=msg.chat_id,
                                message_id=msg.message_id,
                                caption=caption + "\n%s" % message)
@@ -409,8 +409,10 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
     conversation.is_alarm_set = False
     try:
         if likes > dislikes:
+            # todo wrap this up
             conversation.current_user.like()
         else:
+            # todo wrap this up
             conversation.current_user.dislike()
     except pynder.errors.RequestError as e:
         if e.args[0] == 401:
@@ -441,66 +443,70 @@ def message_handler(bot: Bot, update: Update, job_queue):
     :return:
     """
     global data
+    try:
+        chat_id = update.message.chat_id
+        sender = update.message.from_user.id
+        text = update.message.text
+        # Check action from main menu
+        if text in keyboards.main_keyboard:
+            send_matches_menu(bot, chat_id)
+        # Check if someone is trying to login
+        elif sender in data.change_account_queries and chat_id == sender:
+            session.do_login(bot=bot, chat_id=chat_id, sender=sender,
+                             token=update.message.text, job_queue=job_queue)
 
-    chat_id = update.message.chat_id
-    sender = update.message.from_user.id
-    text = update.message.text
-    # Check action from main menu
-    if text in keyboards.main_keyboard:
-        send_matches_menu(bot, chat_id)
-    # Check if someone is trying to login
-    elif sender in data.change_account_queries and chat_id == sender:
-        session.do_login(bot=bot, chat_id=chat_id, sender=sender,
-                         token=update.message.text, job_queue=job_queue)
+        # Ignore reply to the bot in groups
+        elif sender in data.change_account_queries.keys():
+            if data.change_account_queries[sender] == sender:
+                update.message.reply_text(error_messages["unknown_command"])
+        # TODO: THIS SHOULD BE SOMEWHERE ELSE I SUPPOSE
+        elif text.strip() == "YES":
+            if chat_id not in data.make_me_mod_queries.keys():
+                return
 
-    # Ignore reply to the bot in groups
-    elif sender in data.change_account_queries.keys():
-        if data.change_account_queries[sender] == sender:
-            update.message.reply_text(error_messages["unknown_command"])
-    # TODO: THIS SHOULD BE SOMEWHERE ELSE I SUPPOSE
-    elif text.strip() == "YES":
-        if chat_id not in data.make_me_mod_queries.keys():
-            return
-
-        group_id = data.make_me_mod_queries[chat_id]
-        del data.make_me_mod_queries[chat_id]
-
-        if group_id not in data.conversations.keys():
-            send_error(bot=bot, chat_id=group_id, name="account_not_setup")
-            return
-
-        conversation = data.conversations[group_id]
-        mod_candidate = conversation.current_mod_candidate
-        conversation.current_mod_candidate = None
-
-        mod_candidate_entry = db.User.get_or_create(id=mod_candidate.id)[0]
-        conversation_entry = db.Conversation.get_or_create(id=group_id)[0]
-
-        mod_candidate_id = mod_candidate_entry.id
-        conversation_entry_id = conversation_entry.id
-
-        query = db.IsMod.select().where((db.IsMod.user == mod_candidate_id) & (db.IsMod.group == conversation_entry_id))
-
-        if not query.exists():
-            db.IsMod.create(user=mod_candidate_entry, group=conversation_entry)
-            bot.sendMessage(chat_id, text="Mod added.")
-            # Inform group to notify that a new user can become a candidate
-            bot.sendMessage(group_id, text="Mod " + mod_candidate.name + " added.")
-        else:
-            bot.sendMessage(chat_id, text="User is already a mod.")
-            bot.sendMessage(group_id, text="User " + mod_candidate.name + " was already a mod.")
-
-    # Abort all running transactions between the users and the bot
-    else:
-        if chat_id in data.make_me_mod_queries.keys():
             group_id = data.make_me_mod_queries[chat_id]
             del data.make_me_mod_queries[chat_id]
-            bot.sendMessage(chat_id, text="Mod request denied.")
 
-            if group_id in data.conversations.keys():
-                msg = "User " + data.conversations[group_id].current_mod_candidate.name + " was not made a mod."
-                send_custom_message(bot, chat_id=group_id, message=msg)
-                data.conversations[group_id].current_mod_candidate = None
+            if group_id not in data.conversations.keys():
+                send_error(bot=bot, chat_id=group_id, name="account_not_setup")
+                return
+
+            conversation = data.conversations[group_id]
+            mod_candidate = conversation.current_mod_candidate
+            conversation.current_mod_candidate = None
+
+            mod_candidate_entry = db.User.get_or_create(id=mod_candidate.id)[0]
+            conversation_entry = db.Conversation.get_or_create(id=group_id)[0]
+
+            mod_candidate_id = mod_candidate_entry.id
+            conversation_entry_id = conversation_entry.id
+
+            query = db.IsMod.select().where(
+                (db.IsMod.user == mod_candidate_id) & (db.IsMod.group == conversation_entry_id))
+
+            if not query.exists():
+                db.IsMod.create(user=mod_candidate_entry, group=conversation_entry)
+                bot.sendMessage(chat_id, text="Mod added.")
+                # Inform group to notify that a new user can become a candidate
+                bot.sendMessage(group_id, text="Mod " + mod_candidate.name + " added.")
+            else:
+                bot.sendMessage(chat_id, text="User is already a mod.")
+                bot.sendMessage(group_id, text="User " + mod_candidate.name + " was already a mod.")
+
+        # Abort all running transactions between the users and the bot
+        else:
+            if chat_id in data.make_me_mod_queries.keys():
+                group_id = data.make_me_mod_queries[chat_id]
+                del data.make_me_mod_queries[chat_id]
+                bot.sendMessage(chat_id, text="Mod request denied.")
+
+                if group_id in data.conversations.keys():
+                    msg = "User " + data.conversations[group_id].current_mod_candidate.name + " was not made a mod."
+                    send_custom_message(bot, chat_id=group_id, message=msg)
+                    data.conversations[group_id].current_mod_candidate = None
+    except AttributeError:
+        # Protect from update not having a msg attribute
+        send_error(bot=bot, chat_id=chat_id, name="error")
 
 
 @run_async
@@ -513,7 +519,8 @@ def send_about(bot: Bot, update: Update):
     """
     repo = git.Repo(search_parent_directories=True)
     sha = repo.head.object.hexsha
-    msg = messages["about"] + "\nLast commit [%s](https://github.com/arthurdk/tinder-telegram-bot/commit/%s)" % (sha, sha)
+    msg = messages["about"] + "\nLast commit [%s](https://github.com/arthurdk/tinder-telegram-bot/commit/%s)" % (
+    sha, sha)
     chat_id = update.message.chat_id
     send_custom_message(bot=bot, chat_id=chat_id, message=msg)
 
@@ -561,6 +568,33 @@ def custom_command_handler(bot: Bot, update: Update):
         unknown(bot, update)
 
 
+def error_callback(bot, update, error):
+    try:
+        print(error)
+        raise error
+    except Unauthorized:
+        # remove update.message.chat_id from conversation list
+        logging.error("Unauthorized...")
+    except BadRequest:
+        # handle malformed requests - read more below!
+        logging.error("Bad request...")
+    except TimedOut:
+        # handle slow connection problems
+        logging.error("Timed out...")
+    except NetworkError:
+        # handle other connection problems
+        logging.error("NetworkError...")
+    except ChatMigrated as e:
+        # the chat_id of a group has changed, use e.new_chat_id instead
+        logging.error("ChatMigrated...")
+    except TelegramError:
+        # handle all other telegram related errors
+        logging.error("TelegramError...")
+    except BaseException:
+        logging.error("Fatal error...")
+        traceback.print_exc()
+
+
 def main():
     db.db.connect()
 
@@ -604,7 +638,7 @@ def main():
     dispatcher.add_handler(inline_caps_handler)
 
     dispatcher.add_handler(MessageHandler(Filters.command, custom_command_handler))
-
+    dispatcher.add_error_handler(error_callback)
     updater.start_polling()
     updater.idle()
 

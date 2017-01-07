@@ -122,6 +122,14 @@ def get_caption_match(user, current_vote, max_vote, bio=False):
     return name
 
 
+def get_bio(user):
+    name = " %s - %d y.o - %d km away" % (user.name, user.age, user.distance_km)
+    bio = "\n" + user.bio
+    if len(user.schools) > 0:
+        bio += "\nSchools: %s" % ",".join(user.schools)
+    return name + bio
+
+
 def send_help(bot, chat_id, command, error=""):
     if command not in help_messages:
         raise Exception('Unknown command: ' + command)

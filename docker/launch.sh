@@ -34,7 +34,7 @@ fi
 cat > $ROOT_FOLDER/bot_app/settings.py << EOL
 from bot_app.prediction import *
 KEY = "$BOT_KEY"
-DB_NAME = 'tinderbot.sqlite3'
+DB_NAME = '/db/tinderbot.sqlite3'
 DEBUG_MODE = $DEBUG
 
 settings_defaults = {

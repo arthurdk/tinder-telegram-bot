@@ -247,7 +247,12 @@ def start_vote(bot, job):
                     reply_markup = keyboards.get_vote_keyboard(conversation=conversation, bot_name=bot.username)
                     msg = send_photo(bot=bot, chat_id=chat_id, photo=photos[0], caption=caption,
                                      reply_markup=reply_markup)
-                    conversation.map_msg_user[msg.message_id] = conversation.current_user.id
+
+                    # Store the message and the corresponding Pynder user id
+                    vote_msg = db.Vote.get_or_create(conversation=conversation.group_id,
+                                                     pynder_user_id=conversation.current_user.id,
+                                                     message_id=msg.message_id)[0]
+
                     # Why? Before this commit a question was sent to the group along with the photo.
                     # TODO => refactor properly
                     conversation.vote_msg = msg
@@ -406,7 +411,8 @@ def alarm_vote(bot: Bot, chat_id: str, job_queue):
         bot.editMessageCaption(chat_id=msg.chat_id,
                                message_id=msg.message_id,
                                caption=caption + "\n%s" % message,
-                               reply_markup=keyboards.get_vote_finished_keyboard())
+                               reply_markup=keyboards.get_vote_finished_keyboard(user=conversation.current_user,
+                                                                                 conversation=conversation))
     except BaseException:
         traceback.print_exc()
     conversation.set_is_voting(False)
@@ -465,7 +471,7 @@ def message_handler(bot: Bot, update: Update, job_queue):
         elif sender in data.change_account_queries.keys():
             if data.change_account_queries[sender] == sender:
                 update.message.reply_text(error_messages["unknown_command"])
-        # TODO: THIS SHOULD BE SOMEWHERE ELSE I SUPPOSE
+        # TODO: THIS SHOULD BE SOMEWHERE ELSE I SUPPOSE - PLZ
         elif text.strip() == "YES":
             if chat_id not in data.make_me_mod_queries.keys():
                 return
@@ -529,6 +535,7 @@ def send_about(bot: Bot, update: Update):
         sha, sha)
     chat_id = update.message.chat_id
     send_custom_message(bot=bot, chat_id=chat_id, message=msg)
+
 
 """
 def send_matches_menu(bot: Bot, chat_id: str):
@@ -600,7 +607,7 @@ def main():
     db.db.connect()
 
     try:
-        db.db.create_tables([db.Conversation, db.User, db.IsMod])
+        db.db.create_tables([db.Conversation, db.User, db.IsMod, db.Vote])
     except pw.OperationalError:
         pass
 

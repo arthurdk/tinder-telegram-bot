@@ -150,6 +150,7 @@ First get your Bot Api Key from the [BotFather](https://core.telegram.org/bots#3
 
 ### Docker (from DockerHub)
 **Note**: Vote data is stored under /votes.
+**Note 2**: The database is stored under /db.
 
 Simply write your bot api key in the dedicated environment variable and launch the container:
 ```

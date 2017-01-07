@@ -15,6 +15,7 @@ class InlineKeyboard:
     # NEXT = BaseInlineAction("NEXT")
     # PREVIOUS = BaseInlineAction("PREVIOUS")
     INSTAGRAM = "INSTAGRAM"
+    user_based_actions = [MORE_PICS, BIO, INSTAGRAM]
 
 main_keyboard = ["Matches"]
 
@@ -50,16 +51,9 @@ def get_vote_keyboard(conversation, bot_name):
     ]
     user = conversation.current_user
     # Instagram button
-    instagram_user = user.instagram_username
-    if instagram_user is not None:
-        label = "Instagram"
-        if conversation.cur_user_insta_private is None:
-            conversation.cur_user_insta_private = data_retrieval.is_instagram_private(instagram_user)
-        if not conversation.cur_user_insta_private:
-            button = InlineKeyboardButton(label, url="http://instagram.com/%s" % instagram_user)
-        else:
-            button = InlineKeyboardButton(label, callback_data=InlineKeyboard.INSTAGRAM)
-        second_row.append(button)
+    insta_button = get_instagram_button(user=user, conversation=conversation)
+    if insta_button is not None:
+        second_row.append(insta_button)
 
     second_row.append(InlineKeyboardButton("Matches",
                                            switch_inline_query_current_chat="matches " + str(conversation.group_id)))
@@ -69,6 +63,20 @@ def get_vote_keyboard(conversation, bot_name):
             [InlineKeyboardButton(messages['switch_private'], url="https://telegram.me/%s?start=" % bot_name)])
 
     return InlineKeyboardMarkup(keyboard)
+
+
+def get_instagram_button(user, conversation):
+    instagram_user = user.instagram_username
+    if instagram_user is not None:
+        label = "Instagram"
+        if conversation.cur_user_insta_private is None:
+            conversation.cur_user_insta_private = data_retrieval.is_instagram_private(instagram_user)
+        if not conversation.cur_user_insta_private:
+            button = InlineKeyboardButton(label, url="http://instagram.com/%s" % instagram_user)
+        else:
+            button = InlineKeyboardButton(label, callback_data=InlineKeyboard.INSTAGRAM)
+        return button
+    return None
 
 
 def switch_private_chat_keyboard(bot_name):
@@ -130,11 +138,19 @@ def get_conversation_menu(conversation):
 """
 
 
-def get_vote_finished_keyboard():
+def get_vote_finished_keyboard(user, conversation):
     keyboard = \
         [
             [
+                InlineKeyboardButton("Bio", callback_data=InlineKeyboard.BIO),
                 InlineKeyboardButton("More pictures", callback_data=InlineKeyboard.MORE_PICS)
             ],
         ]
+    insta_button = get_instagram_button(user=user, conversation=conversation)
+    if insta_button is not None:
+        keyboard[0].insert(1, insta_button)
     return InlineKeyboardMarkup(keyboard)
+
+
+def get_empty_keyboard():
+    return InlineKeyboardMarkup([[]])

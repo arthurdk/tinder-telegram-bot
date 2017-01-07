@@ -6,38 +6,31 @@ from telegram import InlineQueryResultPhoto, InlineQueryResultArticle, InputText
 
 
 @run_async
-def send_instagram_urls(private_chat_id: str, group_chat_id: str, bot, incoming_message):
+def send_instagram_urls(private_chat_id: str, group_chat_id: str, bot, incoming_message, user):
     global data
     if group_chat_id in data.conversations:
-        conversation = data.conversations[group_chat_id]
-        if conversation.is_voting:
-            user = conversation.current_user
-            photos = user.instagram_photos
-            max_idx = len(photos) if len(photos) < 5 else 5
-            for idx, photo in enumerate(photos):
-                if idx >= max_idx:
-                    break
-                caption = " %s (%d/%d) " % (user.name, idx + 1, max_idx)
+        photos = user.instagram_photos
+        max_idx = len(photos) if len(photos) < 5 else 5
+        for idx, photo in enumerate(photos):
+            if idx >= max_idx:
+                break
+            caption = " %s (%d/%d) " % (user.name, idx + 1, max_idx)
 
-                is_msg_sent = messages.send_private_photo(caption=caption, bot=bot, url=photo['image'],
-                                                          user_id=private_chat_id)
+            is_msg_sent = messages.send_private_photo(caption=caption, bot=bot, url=photo['image'],
+                                                      user_id=private_chat_id)
 
-                if not is_msg_sent:
-                    messages.notify_start_private_chat(bot=bot,
-                                                       chat_id=group_chat_id,
-                                                       incoming_message=incoming_message)
-                    break
-
-        else:
-            message = "There is not vote going on right now."
-            bot.sendMessage(private_chat_id, text=message)
+            if not is_msg_sent:
+                messages.notify_start_private_chat(bot=bot,
+                                                   chat_id=group_chat_id,
+                                                   incoming_message=incoming_message)
+                break
     else:
         messages.send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
 
 
 def do_press_inline_button(bot, update, job_queue):
     """
-    Handle any inline button pressing
+    Handle any inline button pressing (considering it's not an inline query nor a link)
     :param bot:
     :param update:
     :param job_queue:
@@ -50,41 +43,75 @@ def do_press_inline_button(bot, update, job_queue):
         query = update.callback_query
         sender = query.from_user.id
         new_vote = False
-        conversation = data.conversations[chat_id]
-        if query.data == keyboards.InlineKeyboard.MORE_PICS:
-            msg_id = query.message.message_id
-            if msg_id in conversation.map_msg_user:
-                pynder_user_id = conversation.map_msg_user[msg_id]
-                user = conversation.get_single_user(pynder_user_id)
-                send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
-                                 incoming_message=update.callback_query.message, user=user)
+        msg_id = query.message.message_id
+        if chat_id in data.conversations:
+            conversation = data.conversations[chat_id]
+            if query.data in keyboards.InlineKeyboard.user_based_actions:
+                if conversation.is_vote_message_stored(msg_id):
+                    msg_vote = conversation.get_vote_message(message_id=msg_id)
+                    user = conversation.get_single_user(msg_vote.pynder_user_id)
+
+                    if query.data == keyboards.InlineKeyboard.MORE_PICS:
+
+                        send_more_photos(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
+                                         incoming_message=update.callback_query.message, user=user)
+
+                    elif query.data == keyboards.InlineKeyboard.INSTAGRAM:
+                        send_instagram_urls(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
+                                            incoming_message=update.callback_query.message, user=user)
+
+                    elif query.data == keyboards.InlineKeyboard.BIO:
+                        send_bio(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
+                                            incoming_message=update.callback_query.message, user=user)
+
+                else:
+                    # messages.send_custom_message(bot=bot, chat_id=chat_id, message="Unknown user.")
+                    bot.editMessageCaption(chat_id=chat_id,
+                                           message_id=query.message.message_id,
+                                           caption=query.message.caption)
             else:
-                messages.send_custom_message(bot=bot, chat_id=chat_id, message="Unknown user.")
-        elif query.data == keyboards.InlineKeyboard.INSTAGRAM:
-            send_instagram_urls(private_chat_id=sender, group_chat_id=chat_id, bot=bot,
-                                incoming_message=update.callback_query.message)
+                if (sender in conversation.current_votes and not conversation.current_votes[sender] == query.data) \
+                        or sender not in conversation.current_votes:
+                    if conversation.is_vote_message_stored(msg_id) \
+                            and conversation.current_user is not None \
+                            and conversation.get_vote_message(msg_id).pynder_user_id == conversation.current_user.id:
+                        new_vote = True
+                        # Registering vote
+                        conversation.current_votes[sender] = query.data
+                    elif not conversation.is_vote_message_stored(msg_id):
+                        # Unknown user - Remove keyboard
+                        bot.editMessageCaption(chat_id=chat_id,
+                                               message_id=query.message.message_id,
+                                               caption=query.message.caption)
+                    elif conversation.current_user is None \
+                            or conversation.get_vote_message(msg_id).pynder_user_id != conversation.current_user.id:
+                        # Old user - voting not allowed - Switch keyboard
+                        msg_vote = conversation.get_vote_message(message_id=msg_id)
+                        user = conversation.get_single_user(msg_vote.pynder_user_id)
+                        keyboard = keyboards.get_vote_finished_keyboard(conversation=conversation, user=user)
+                        bot.editMessageCaption(chat_id=chat_id,
+                                               message_id=query.message.message_id,
+                                               reply_markup=keyboard,
+                                               caption=query.message.caption)
+
+                # Schedule end of voting session
+                if not data.conversations[chat_id].is_alarm_set:
+                    data.conversations[chat_id].is_alarm_set = True
+                    Bot.alarm_vote(bot, chat_id, job_queue)
+
+            # Send back updated inline keyboard
+            if new_vote:
+                reply_markup = keyboards.get_vote_keyboard(data.conversations[chat_id],
+                                                           bot_name=bot.username)
+                current_vote = len(conversation.get_votes())
+                max_vote = conversation.settings.get_setting("min_votes_before_timeout")
+                caption = messages.get_caption_match(conversation.current_user, current_vote, max_vote, bio=True)
+                bot.editMessageCaption(chat_id=chat_id,
+                                       message_id=query.message.message_id,
+                                       reply_markup=reply_markup,
+                                       caption=caption)
         else:
-            if (sender in conversation.current_votes and not conversation.current_votes[sender] == query.data) \
-                    or sender not in conversation.current_votes:
-                new_vote = True
-                conversation.current_votes[sender] = query.data
-            # Schedule end of voting session
-            if not data.conversations[chat_id].is_alarm_set:
-                data.conversations[chat_id].is_alarm_set = True
-                Bot.alarm_vote(bot, chat_id, job_queue)
-
-        # Send back updated inline keyboard
-        if new_vote:
-            reply_markup = keyboards.get_vote_keyboard(data.conversations[chat_id],
-                                                       bot_name=bot.username)
-            current_vote = len(conversation.get_votes())
-            max_vote = conversation.settings.get_setting("min_votes_before_timeout")
-            caption = messages.get_caption_match(conversation.current_user, current_vote, max_vote, bio=True)
-            bot.editMessageCaption(chat_id=chat_id,
-                                   message_id=query.message.message_id,
-                                   reply_markup=reply_markup,
-                                   caption=caption)
-
+            messages.send_error(bot=bot, chat_id=chat_id, name="account_not_setup")
     # will catch when pressing same button twice # TODO fix the rotating icon
     except TelegramError as e:
         raise e
@@ -167,9 +194,33 @@ def inline_preview(bot: Bot, update):
 
 
 @run_async
-def send_more_photos(private_chat_id: str, group_chat_id: str, bot, incoming_message, user):
+def send_bio(private_chat_id: str, group_chat_id: str, bot: Bot, incoming_message, user):
+    """
+    :param user:  Pynder user object
+    :param incoming_message:
+    :param private_chat_id:
+    :param group_chat_id:
+    :param bot:
+    :return:
+    """
+    global data
+    if group_chat_id in data.conversations:
+        bio = messages.get_bio(user)
+        is_msg_sent = messages.send_private_message(bot=bot, user_id=private_chat_id, text=bio)
+
+        if not is_msg_sent:
+            messages.notify_start_private_chat(bot=bot,
+                                               chat_id=group_chat_id,
+                                               incoming_message=incoming_message)
+    else:
+        messages.send_error(bot=bot, chat_id=group_chat_id, name="account_not_setup")
+
+
+@run_async
+def send_more_photos(private_chat_id: str, group_chat_id: str, bot: Bot, incoming_message, user):
     """
     Function used for sending all user pictures to private chat directly
+    :param user: Pynder user object
     :param incoming_message:
     :param private_chat_id:
     :param group_chat_id:

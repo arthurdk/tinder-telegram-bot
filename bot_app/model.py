@@ -5,10 +5,10 @@ import time
 import pynder
 import traceback
 import threading
+import bot_app.db_model as db
 
 
 class Conversation:
-
     def __init__(self, group_id, session: Session, owner):
         # The chat id (private ou group id)
         self.group_id = group_id
@@ -34,7 +34,23 @@ class Conversation:
         self.current_mod_candidate = None
         self.current_user = None
         # Dict use to map vote message to tinder User -> handler of inline button
-        self.map_msg_user = {}
+        # TODO merge this directly with db_model
+        self.conversation_db = db.Conversation.get_or_create(id=group_id)[0]
+
+    def get_vote_message(self, message_id):
+        """
+        Will fail if it does not exists
+        :param message_id:
+        :return:
+        """
+        return (db.Vote
+                .select()
+                .where(db.Vote.message_id == message_id, db.Vote.conversation == self.group_id)).first()
+
+    def is_vote_message_stored(self, message_id) -> bool:
+        return (db.Vote
+                .select()
+                .where(db.Vote.message_id == message_id, db.Vote.conversation == self.group_id)).first() is not None
 
     def refresh_users(self):
         self.users = self.session.nearby_users()
@@ -76,7 +92,7 @@ class Conversation:
         self.prev_nb_match = None if self.matches_cache is None else len(self.matches_cache)
         self.matches_cache_lock.acquire()
         if force_reload or (time.time() - self.matches_cache_time > int(self.settings.get_setting("matches_cache_time")) \
-                or self.matches_cache is None):
+                                    or self.matches_cache is None):
             self.matches_cache_time = time.time()
             retry = 0
             success = False
@@ -94,8 +110,7 @@ class Conversation:
                     traceback.print_exc()
                     retry += 1
             if retry >= 3 and success is False:
-                    self.matches_cache = self.matches_cache if self.matches_cache is not None else []
+                self.matches_cache = self.matches_cache if self.matches_cache is not None else []
         matches = self.matches_cache
         self.matches_cache_lock.release()
         return matches
-

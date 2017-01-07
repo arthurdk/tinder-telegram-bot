@@ -5,6 +5,6 @@ ADD ./ $ROOT_FOLDER
 RUN apk add --no-cache git bash \
 && git clone https://github.com/charliewolf/pynder.git \
 && cd pynder && git checkout $PYNDER_SAFE_COMMIT && python setup.py install \
-&& pip install -r $ROOT_FOLDER/requirements.txt
+&& pip install -r $ROOT_FOLDER/requirements.txt && mkdir /db
 ENV PYTHONPATH $ROOT_FOLDER/
 ENTRYPOINT /bin/sh $ROOT_FOLDER/docker/launch.sh

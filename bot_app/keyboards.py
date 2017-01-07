@@ -16,29 +16,6 @@ class InlineKeyboard:
     # PREVIOUS = BaseInlineAction("PREVIOUS")
     INSTAGRAM = "INSTAGRAM"
 
-
-class BaseInlineAction:
-    def __init__(self, action):
-        self.action = action
-
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=2)
-
-
-class UserTargetedInlineAction(BaseInlineAction):
-    def __init__(self, action, user_id):
-        """
-        :param action:
-        :param user_id: Pynder uid
-        """
-        super().__init__(action)
-        self.user_id = user_id
-
-    def set_user_id(self, user_id):
-        self.user_id = user_id
-        return self
-
-
 main_keyboard = ["Matches"]
 
 

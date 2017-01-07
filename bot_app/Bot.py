@@ -512,7 +512,7 @@ def message_handler(bot: Bot, update: Update, job_queue):
                     data.conversations[group_id].current_mod_candidate = None
     except AttributeError:
         # Protect from update not having a msg attribute
-        send_error(bot=bot, chat_id=chat_id, name="error")
+        pass
 
 
 @run_async

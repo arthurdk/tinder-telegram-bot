@@ -7,6 +7,7 @@ from telegram.ext.dispatcher import run_async
 import pynder
 import pynder.models as pynder_models
 
+
 class Session:
     """
     Wrapper class for Pynder session
@@ -15,6 +16,9 @@ class Session:
         self.token = token
         # Pynder session
         self.__session = None
+
+    def get_session(self):
+        return self.__session
 
     def do_connect(self):
         try:

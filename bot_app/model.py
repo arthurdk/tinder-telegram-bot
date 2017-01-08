@@ -10,7 +10,7 @@ import bot_app.db_model as db
 
 class Conversation:
     def __init__(self, group_id, session: Session, owner):
-        # The chat id (private ou group id)
+        # The chat id (private or group id)
         self.group_id = group_id
         self.is_voting = False
         self.current_votes = {}
@@ -35,7 +35,7 @@ class Conversation:
         self.current_user = None
         # Dict use to map vote message to tinder User -> handler of inline button
         # TODO merge this directly with db_model
-        self.conversation_db = db.Conversation.get_or_create(id=group_id)[0]
+        # self.conversation_db = db.Conversation.get_or_create(id=group_id)[0]
 
     def get_vote_message(self, message_id):
         """
@@ -77,9 +77,9 @@ class Conversation:
         :return:
         """
         for user in self.users:
-            user._session = self.session.__session
+            user._session = self.session.get_session()
         if self.current_user is not None:
-            self.current_user._session = self.session.__session
+            self.current_user._session = self.session.get_session()
 
     def get_single_user(self, user_id):
         return self.session.get_single_user(user_id)
